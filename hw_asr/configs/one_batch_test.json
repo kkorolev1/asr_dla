@@ -12,34 +12,8 @@
   },
   "augmentations": {
     "wave": [
-      {
-        "type": "Gain",
-        "args": {
-          "sample_rate": 16000
-        }
-      },
-      {
-        "type": "BackgroundNoise",
-        "args": {
-          "background_paths": "data/noise",
-          "sample_rate": 16000
-        }
-      }
     ],
     "spectrogram": [
-      {
-        "type": "RandomFrequencyMasking",
-        "args": {
-          "freq_mask_param": 80,
-          "p": 0.5
-        }
-      },
-      {
-        "type": "TimeMasking",
-        "args": {
-          "time_mask_param": 80
-        }
-      }
     ]
   },
   "arch": {
@@ -48,14 +22,15 @@
       "n_feats": 128,
       "encoder_layers": 16,
       "encoder_dim": 144,
-      "encoder_dropout": 0.1,
-      "attention_heads": 4,
       "decoder_layers": 1,
       "decoder_dim": 320,
+      "attention_heads": 4,
       "conv_kernel_size": 31,
-      "feed_forward_dropout": 0.1,
-      "attention_dropout": 0.1,
-      "conv_dropout": 0.1
+      "feed_forward_expansion": 2,
+      "encoder_dropout": 0,
+      "feed_forward_dropout": 0,
+      "attention_dropout": 0,
+      "conv_dropout": 0
     }
   },
   "data": {
@@ -91,14 +66,14 @@
     }
   },
   "optimizer": {
-    "type": "SGD",
-    "args": {
-      "lr": 1e-2
-    }
+    "type": "Adam",
+    "args": {}
   },
   "loss": {
     "type": "CTCLoss",
-    "args": {}
+    "args": {
+      "zero_infinity": true
+    }
   },
   "metrics": [
     {
@@ -117,11 +92,9 @@
   "lr_scheduler": {
     "type": "OneCycleLR",
     "args": {
+      "max_lr": 0.0042,
       "steps_per_epoch": 100,
-      "epochs": 50,
-      "anneal_strategy": "cos",
-      "max_lr": 1e-2,
-      "pct_start": 0.2
+      "epochs": 50
     }
   },
   "trainer": {
@@ -133,7 +106,7 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "one_batch_test_aug",
+    "wandb_run_name": "conformer_one_batch",
     "len_epoch": 100,
     "grad_norm_clip": 10
   }

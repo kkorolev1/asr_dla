@@ -70,8 +70,13 @@ def prepare_device(n_gpu_use):
             "available on this machine."
         )
         n_gpu_use = n_gpu
-    device = torch.device(f"cuda:{find_device()}" if n_gpu_use > 0 else "cpu")
-    list_ids = list(range(n_gpu_use))
+    if n_gpu_use == 1:
+        device_id = find_device()
+        device = torch.device(f"cuda:{device_id}")
+        list_ids = [device_id]
+    else:
+        device = torch.device(f"cuda" if n_gpu_use > 0 else "cpu")
+        list_ids = list(range(n_gpu_use))
     return device, list_ids
 
 

@@ -19,6 +19,7 @@ class ConvolutionSubsampling(nn.Module):
         x = x.contiguous().view(batch_size, subsampled_lengths, channels * sumsampled_dim)
         return x
 
+
 class PointwiseConv(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1, padding=0, bias=True):
         super().__init__()
@@ -38,25 +39,21 @@ class DepthwiseConv(nn.Module):
 
 
 class ConvolutionModule(nn.Module):
-    def __init__(self, emb_dim, kernel_size, expansion_factor=2, dropout=0.1):
+    def __init__(self, encoder_dim, kernel_size, dropout=0.1, bias=False):
         super().__init__()
-        self.layer_norm = nn.LayerNorm(emb_dim)
-        self.pointwise_conv = PointwiseConv(emb_dim, expansion_factor * emb_dim)
-        self.depthwise_conv = DepthwiseConv(emb_dim, emb_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2)
-        self.batch_norm = nn.BatchNorm1d(emb_dim)
-        self.pointwise_conv2 = PointwiseConv(emb_dim, emb_dim)
-        self.dropout = nn.Dropout(dropout)
+        self.layer_norm = nn.LayerNorm(encoder_dim)
+        self.sequential = nn.Sequential(
+            PointwiseConv(encoder_dim, 2 * encoder_dim, bias=bias),
+            nn.GLU(dim=1),
+            DepthwiseConv(encoder_dim, encoder_dim, kernel_size=kernel_size, padding=(kernel_size - 1) // 2, bias=bias),
+            nn.BatchNorm1d(encoder_dim),
+            PointwiseConv(encoder_dim, encoder_dim, bias=bias),
+            nn.Dropout(dropout)
+        )
 
     def forward(self, x):
         x = self.layer_norm(x)
-        x = self.pointwise_conv(x.transpose(1, 2))
-        x = F.glu(x, dim=1)
-        x = self.depthwise_conv(x)
-        x = self.batch_norm(x)
-        x = F.silu(x)
-        x = self.pointwise_conv2(x)
-        x = self.dropout(x)
-        return x.transpose(1, 2)
+        return self.sequential(x.transpose(1, 2)).transpose(1, 2)
     
 if __name__ == "__main__":
     batch = torch.ones((1, 863, 32))

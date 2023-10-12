@@ -64,7 +64,7 @@ class Trainer(BaseTrainer):
         """
         Move all necessary tensors to the HPU
         """
-        for tensor_for_gpu in ["spectrogram", "text_encoded"]:
+        for tensor_for_gpu in ["spectrogram", "spectrogram_length", "text_encoded"]:
             batch[tensor_for_gpu] = batch[tensor_for_gpu].to(device)
         return batch
 
@@ -216,7 +216,7 @@ class Trainer(BaseTrainer):
         argmax_inds = log_probs.cpu().argmax(-1).numpy()
         argmax_inds = [
             inds[: int(ind_len)]
-            for inds, ind_len in zip(argmax_inds, log_probs_length.numpy())
+            for inds, ind_len in zip(argmax_inds, log_probs_length.cpu().numpy())
         ]
         argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
         argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
