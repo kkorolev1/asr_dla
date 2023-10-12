@@ -183,14 +183,15 @@ class MultiHeadAttentionModule(nn.Module):
         self.pos_encoding = PositionalEncoding(pos_encoding_max_length, emb_dim)
         self.layer_norm = nn.LayerNorm(emb_dim)
         
-        #self.mha = MultiHeadAttention(emb_dim, attention_heads, dropout)
-        self.mha = RelativeMultiHeadAttention(emb_dim, attention_heads, dropout)
+        self.mha = MultiHeadAttention(emb_dim, attention_heads, dropout)
+        #self.mha = RelativeMultiHeadAttention(emb_dim, attention_heads, dropout)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        pos_enc = self.pos_encoding(x.shape[1]).repeat(x.shape[0], 1, 1)
+        #pos_enc = self.pos_encoding(x.shape[1]).repeat(x.shape[0], 1, 1)
         x = self.layer_norm(x)
-        x = self.mha(x, x, x, pos_enc)
+        x = self.mha(x, x, x)[0]
+        #x = self.mha(x, x, x, pos_enc)
         x = self.dropout(x)
         return x
     

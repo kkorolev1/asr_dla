@@ -33,9 +33,10 @@ class ConformerEncoder(nn.Module):
         self.conv_subsampling = ConvolutionSubsampling(1, encoder_dim, kernel_size=3)
         self.linear = nn.Linear(encoder_dim * (((spec_dim - 1) // 2 - 1) // 2), encoder_dim)
         self.dropout = nn.Dropout(encoder_dropout)
-        self.blocks = nn.ModuleList([ConformerBlock(encoder_dim, attention_heads, conv_kernel_size=conv_kernel_size,
-                                                    feed_forward_dropout=feed_forward_dropout, attention_dropout=attention_dropout,
-                                                    conv_dropout=conv_dropout) for _ in range(encoder_layers)])
+        self.blocks = nn.ModuleList([ConformerBlock(emb_dim=encoder_dim, attention_heads=attention_heads, 
+                                                    conv_kernel_size=conv_kernel_size, feed_forward_dropout=feed_forward_dropout,
+                                                    attention_dropout=attention_dropout, conv_dropout=conv_dropout) 
+                                                    for _ in range(encoder_layers)])
 
         torch.nn.init.xavier_uniform_(self.linear.weight)
         torch.nn.init.zeros_(self.linear.bias)
@@ -51,14 +52,14 @@ class ConformerEncoder(nn.Module):
 class ConformerDecoder(nn.Module):
     def __init__(self, emb_dim, n_class, decoder_layers=1, decoder_dim=320):
         super().__init__()
-        #self.lstm = nn.LSTM(input_size=emb_dim, hidden_size=decoder_dim, num_layers=decoder_layers, batch_first=True)
-        self.linear = nn.Linear(emb_dim, n_class, bias=False)
+        self.lstm = nn.LSTM(input_size=emb_dim, hidden_size=decoder_dim, num_layers=decoder_layers, batch_first=True)
+        self.linear = nn.Linear(decoder_dim, n_class)
 
         torch.nn.init.xavier_uniform_(self.linear.weight)
-        #torch.nn.init.zeros_(self.linear.bias)
+        torch.nn.init.zeros_(self.linear.bias)
 
     def forward(self, x):
-        #x = self.lstm(x)[0]
+        x = self.lstm(x)[0]
         x = self.linear(x)
         return x
 
