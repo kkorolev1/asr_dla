@@ -1,6 +1,7 @@
 from typing import List, NamedTuple
 
 import torch
+from collections import defaultdict
 
 from .char_text_encoder import CharTextEncoder
 
@@ -21,7 +22,45 @@ class CTCCharTextEncoder(CharTextEncoder):
 
     def ctc_decode(self, inds: List[int]) -> str:
         # TODO: your code here
-        raise NotImplementedError()
+        last_char = self.EMPTY_TOK
+        res = []
+        for ind in inds:
+            cur_char = self.ind2char[ind]
+
+            if cur_char == self.EMPTY_TOK:
+                last_char = self.EMPTY_TOK
+                continue
+
+            if cur_char != last_char:
+                res.append(cur_char)
+                last_char = cur_char
+    
+        return ''.join(res)
+
+
+    def _extend_and_merge(self, current_state, dist):
+        new_state = defaultdict(float)
+
+        for next_char_index, next_char_p in enumerate(dist):
+            for (prefix, last_char), prefix_p in current_state.items():
+                next_char = self.ind2char[next_char_index]
+
+                if next_char == last_char or next_char == self.EMPTY_TOK:
+                    new_pref = prefix
+                else:
+                    new_pref = prefix + next_char
+
+                last_char = next_char
+                new_state[(new_pref, last_char)] += prefix_p * next_char_p
+        
+        return new_state
+
+
+    def _truncate(self, current_state, beam_size):
+        current_state = list(current_state.items())
+        current_state = sorted(current_state, key=lambda x: -x[1])
+        return dict(current_state[:beam_size])
+
 
     def ctc_beam_search(self, probs: torch.tensor, probs_length,
                         beam_size: int = 100) -> List[Hypothesis]:
@@ -33,5 +72,9 @@ class CTCCharTextEncoder(CharTextEncoder):
         assert voc_size == len(self.ind2char)
         hypos: List[Hypothesis] = []
         # TODO: your code here
-        raise NotImplementedError
+        state = {('', self.EMPTY_TOK): 1.0}
+        for dist in probs:
+            state = self._extend_and_merge(state, dist)
+            state = self._truncate(state, beam_size)
+        hypos = [Hypothesis(text, p) for (text, _), p in state.items()]
         return sorted(hypos, key=lambda x: x.prob, reverse=True)

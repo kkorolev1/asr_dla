@@ -6,6 +6,9 @@ from pathlib import Path
 import pandas as pd
 import torch
 
+from pynvml import *
+
+
 ROOT_PATH = Path(__file__).absolute().resolve().parent.parent.parent
 
 
@@ -33,6 +36,23 @@ def inf_loop(data_loader):
         yield from loader
 
 
+def find_device():
+    nvmlInit()
+    device_count = nvmlDeviceGetCount()
+    infos = []
+
+    for i in range(device_count):
+        handle = nvmlDeviceGetHandleByIndex(i)
+        info = nvmlDeviceGetMemoryInfo(handle)
+        infos.append((i, info.free))
+
+    infos.sort(key=lambda x: -x[1])
+    device = infos[0][0]
+
+    nvmlShutdown()
+
+    return device
+
 def prepare_device(n_gpu_use):
     """
     setup GPU device if available. get gpu device indices which are used for DataParallel
@@ -50,7 +70,7 @@ def prepare_device(n_gpu_use):
             "available on this machine."
         )
         n_gpu_use = n_gpu
-    device = torch.device("cuda:0" if n_gpu_use > 0 else "cpu")
+    device = torch.device(f"cuda:{find_device()}" if n_gpu_use > 0 else "cpu")
     list_ids = list(range(n_gpu_use))
     return device, list_ids
 

@@ -8,6 +8,9 @@ from hw_asr.utils.parse_config import ConfigParser
 
 
 def from_configs(configs: ConfigParser):
+    if "augmentations" in configs.config and "enable" in configs.config["augmentations"] and not configs.config["augmentations"]["enable"]:
+        return None, None
+
     wave_augs = []
     if "augmentations" in configs.config and "wave" in configs.config["augmentations"]:
         for aug_dict in configs.config["augmentations"]["wave"]:

@@ -12,6 +12,8 @@ from hw_asr.trainer import Trainer
 from hw_asr.utils import prepare_device
 from hw_asr.utils.object_loading import get_dataloaders
 from hw_asr.utils.parse_config import ConfigParser
+import hw_asr.utils.lr_scheduler
+
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -53,7 +55,7 @@ def main(config):
     # disabling scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = config.init_obj(config["optimizer"], torch.optim, trainable_params)
-    lr_scheduler = config.init_obj(config["lr_scheduler"], torch.optim.lr_scheduler, optimizer)
+    lr_scheduler = config.init_obj(config["lr_scheduler"], hw_asr.utils.lr_scheduler, optimizer)
 
     trainer = Trainer(
         model,
