@@ -6,6 +6,8 @@
     "spectrogram": {
       "type": "MelSpectrogram",
       "args": {
+        "n_mels": 80,
+        "hop_length": 160
       }
     },
     "log_spec": true
@@ -14,12 +16,26 @@
     "wave": [
     ],
     "spectrogram": [
+      {
+        "type": "FrequencyMasking",
+        "args": {
+          "freq_mask_param": 27
+        }
+      },
+      {
+        "type": "MultiTimeMasking",
+        "args": {
+          "time_mask_param": 15,
+          "p": 0.05,
+          "n": 10
+        }
+      }
     ]
   },
   "arch": {
     "type": "Conformer",
     "args": {
-      "n_feats": 128,
+      "n_feats": 80,
       "encoder_layers": 16,
       "encoder_dim": 144,
       "decoder_layers": 1,
@@ -27,15 +43,15 @@
       "attention_heads": 4,
       "conv_kernel_size": 31,
       "feed_forward_expansion": 2,
-      "encoder_dropout": 0,
-      "feed_forward_dropout": 0,
-      "attention_dropout": 0,
-      "conv_dropout": 0
+      "encoder_dropout": 0.1,
+      "feed_forward_dropout": 0.1,
+      "attention_dropout": 0.1,
+      "conv_dropout": 0.1
     }
   },
   "data": {
     "train": {
-      "batch_size": 16,
+      "batch_size": 32,
       "num_workers": 5,
       "datasets": [
         {
@@ -43,14 +59,23 @@
           "args": {
             "part": "train-clean-100",
             "max_audio_length": 20.0,
-            "max_text_length": 200,
+            "max_text_length": 400,
+            "data_dir": "/kaggle/input/librispeech-asr-wav-dataset"
+          }
+        },
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "train-clean-360",
+            "max_audio_length": 20.0,
+            "max_text_length": 400,
             "data_dir": "/kaggle/input/librispeech-asr-wav-dataset"
           }
         }
       ]
     },
     "val": {
-      "batch_size": 16,
+      "batch_size": 32,
       "num_workers": 5,
       "datasets": [
         {
@@ -63,7 +88,7 @@
       ]
     },    
     "test-clean": {
-      "batch_size": 16,
+      "batch_size": 32,
       "num_workers": 5,
       "datasets": [
         {
@@ -77,9 +102,12 @@
     }
   },
   "optimizer": {
-    "type": "Adam",
+    "type": "AdamW",
     "args": {
-      "lr": 3e-4
+      "lr": 5e-4,
+      "betas": [0.9, 0.98],
+      "eps": 1e-9,
+      "weight_decay": 1e-6
     }
   },
   "loss": {
@@ -103,13 +131,10 @@
     }
   ],
   "lr_scheduler": {
-    "type": "OneCycleLR",
+    "type": "TransformerLrScheduler",
     "args": {
-      "max_lr": 3e-4,
-      "pct_start": 0.2,
-      "anneal_strategy": "cos",
-      "steps_per_epoch": 600,
-      "epochs": 50
+      "d_model": 144,
+      "warmup_steps": 10000
     }
   },
   "trainer": {
@@ -121,8 +146,8 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer_reworked",
-    "len_epoch": 600,
+    "wandb_run_name": "conformer",
+    "len_epoch": 900,
     "grad_norm_clip": 10
   }
 }

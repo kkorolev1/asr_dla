@@ -26,7 +26,7 @@ class Conformer(BaseModel):
 
 
     def transform_input_lengths(self, input_lengths):
-        return input_lengths
+        return ((input_lengths - 1) // 2 - 1) // 2
 
 
 if __name__ == "__main__":

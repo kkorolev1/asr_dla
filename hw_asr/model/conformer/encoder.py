@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from hw_asr.model.conformer.convolution import ConvolutionSubsampling, ConvolutionModule
+from hw_asr.model.conformer.convolution import ConvSubsampling, ConvolutionModule
 from hw_asr.model.conformer.feed_forward import FeedForwardModule
 from hw_asr.model.conformer.attention import MultiHeadAttentionModule
 
@@ -56,9 +56,8 @@ class ConformerEncoder(nn.Module):
                  conv_kernel_size=31, feed_forward_dropout=0.1, feed_forward_expansion=2, 
                  attention_dropout=0.1, conv_dropout=0.1):
         super().__init__()
-        #self.conv_subsampling = ConvolutionSubsampling(1, encoder_dim, kernel_size=3)
-        #self.linear = nn.Linear(encoder_dim * (((spec_dim - 1) // 2 - 1) // 2), encoder_dim)
-        self.linear = nn.Linear(n_feats, encoder_dim)
+        self.conv_subsampling = ConvSubsampling(out_channels=encoder_dim, kernel_size=3)
+        self.linear = nn.Linear(encoder_dim * (((n_feats - 1) // 2 - 1) // 2), encoder_dim)
         self.dropout = nn.Dropout(encoder_dropout)
         self.blocks = nn.ModuleList([ConformerBlock(encoder_dim=encoder_dim, attention_heads=attention_heads, 
                                                     conv_kernel_size=conv_kernel_size, feed_forward_dropout=feed_forward_dropout,
@@ -66,11 +65,16 @@ class ConformerEncoder(nn.Module):
                                                     conv_dropout=conv_dropout) for _ in range(encoder_layers)])
 
     def forward(self, x, lengths):
-        #x = self.conv_subsampling(x)
+        x = self.conv_subsampling(x)
         padding_mask = lengths_to_padding_mask(lengths)
+        padding_mask = padding_mask[:, :-2:2]
+        padding_mask = padding_mask[:, :-2:2]
+        assert x.shape[1] == padding_mask.shape[1]
 
         x = self.linear(x)
         x = self.dropout(x)
+
         for block in self.blocks:
             x = block(x, padding_mask)
+
         return x

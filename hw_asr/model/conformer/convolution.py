@@ -3,21 +3,21 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class ConvolutionSubsampling(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size):
+class ConvSubsampling(nn.Module):
+    def __init__(self, out_channels, kernel_size):
         super().__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=2, padding=0)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size, stride=2, padding=0)
+        self.sequential = nn.Sequential(
+            nn.Conv2d(1, out_channels, kernel_size, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(out_channels, out_channels, kernel_size, stride=2),
+            nn.ReLU()
+        )
 
     def forward(self, x):
-        x = self.conv(x.unsqueeze(1))
-        x = F.relu(x)
-        x = self.conv2(x)
-        x = F.relu(x)
-        batch_size, channels, subsampled_lengths, sumsampled_dim = x.size()
+        x = self.sequential(x.unsqueeze(1))
+        batch_size, encoder_dim, subsampled_time, subsampled_freq = x.size()
         x = x.permute(0, 2, 1, 3)
-        x = x.contiguous().view(batch_size, subsampled_lengths, channels * sumsampled_dim)
-        return x
+        return x.contiguous().view(batch_size, subsampled_time, encoder_dim * subsampled_freq)
 
 
 class PointwiseConv(nn.Module):
@@ -39,14 +39,15 @@ class DepthwiseConv(nn.Module):
 
 
 class ConvolutionModule(nn.Module):
-    def __init__(self, encoder_dim, kernel_size, dropout=0.1, bias=False):
+    def __init__(self, encoder_dim, kernel_size, dropout=0.1, bias=True):
         super().__init__()
         self.layer_norm = nn.LayerNorm(encoder_dim)
         self.sequential = nn.Sequential(
             PointwiseConv(encoder_dim, 2 * encoder_dim, bias=bias),
             nn.GLU(dim=1),
-            DepthwiseConv(encoder_dim, encoder_dim, kernel_size=kernel_size, padding=(kernel_size - 1) // 2, bias=bias),
+            DepthwiseConv(encoder_dim, encoder_dim, kernel_size=kernel_size, padding="same", bias=bias),
             nn.BatchNorm1d(encoder_dim),
+            nn.SiLU(),
             PointwiseConv(encoder_dim, encoder_dim, bias=bias),
             nn.Dropout(dropout)
         )
@@ -62,6 +63,6 @@ if __name__ == "__main__":
 
     for len in range(862, 868):
         batch = torch.ones((1, len, 32))
-        subsampler = ConvolutionSubsampling(1, 32, 3)
+        subsampler = ConvSubsampling(1, 32, 3)
         print(len, subsampler(batch).shape)
         break
