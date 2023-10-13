@@ -147,7 +147,7 @@
     "visualize": "wandb",
     "wandb_project": "asr_project",
     "wandb_run_name": "conformer_big",
-    "len_epoch": 1800,
+    "len_epoch": 1200,
     "grad_norm_clip": 10,
     "decode_method": "argmax"
   }
