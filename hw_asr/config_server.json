@@ -1,5 +1,5 @@
 {
-  "name": "one_batch_test",
+  "name": "default_config",
   "n_gpu": 1,
   "preprocessing": {
     "sr": 16000,
@@ -51,31 +51,56 @@
   },
   "data": {
     "train": {
-      "batch_size": 10,
-      "num_workers": 0,
+      "batch_size": 32,
+      "num_workers": 5,
       "datasets": [
         {
           "type": "LibrispeechDataset",
           "args": {
-            "part": "dev-clean",
-            "limit": 10
+            "part": "train-clean-100",
+            "max_audio_length": 20.0,
+            "max_text_length": 400
           }
         }
       ]
     },
     "val": {
-      "batch_size": 10,
-      "num_workers": 0,
+      "batch_size": 32,
+      "num_workers": 5,
       "datasets": [
         {
           "type": "LibrispeechDataset",
           "args": {
-            "part": "dev-clean",
-            "limit": 10
+            "part": "dev-clean"
           }
         }
       ]
-    }
+    },    
+    "test-clean": {
+      "batch_size": 32,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "test-clean"
+          }
+        }
+      ]
+    },
+    "test": {
+      "batch_size": 32,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "test-clean",
+            "limit": 32
+          }
+        }
+      ]
+    }    
   },
   "optimizer": {
     "type": "AdamW",
@@ -94,17 +119,15 @@
   },
   "metrics": [
     {
-      "type": "BeamSearchWERMetric",
+      "type": "ArgmaxWERMetric",
       "args": {
-        "name": "WER (beamsearch)",
-        "beam_size": 3
+        "name": "WER (argmax)"
       }
     },
     {
-      "type": "BeamSearchCERMetric",
+      "type": "ArgmaxCERMetric",
       "args": {
-        "name": "CER (beamsearch)",
-        "beam_size": 3
+        "name": "CER (argmax)"
       }
     }
   ],
@@ -124,9 +147,8 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "beam_search_test",
-    "len_epoch": 100,
-    "grad_norm_clip": 10,
-    "decode_method": "beamsearch"
+    "wandb_run_name": "conformer",
+    "len_epoch": 900,
+    "grad_norm_clip": 10
   }
 }

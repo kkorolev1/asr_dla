@@ -39,6 +39,7 @@ def main(config, out_file):
     model.load_state_dict(state_dict)
 
     # prepare model for testing
+    print(device)
     model = model.to(device)
     model.eval()
 
@@ -66,8 +67,8 @@ def main(config, out_file):
                         "ground_trurh": batch["text"][i],
                         "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
                         "pred_text_beam_search": text_encoder.ctc_beam_search(
-                            batch["probs"][i], batch["log_probs_length"][i], beam_size=100
-                        )[:10],
+                            batch["probs"][i], batch["log_probs_length"][i], beam_size=3
+                        ),
                     }
                 )
     with Path(out_file).open("w") as f:
@@ -134,7 +135,7 @@ if __name__ == "__main__":
 
     # first, we need to obtain config with model parameters
     # we assume it is located with checkpoint in the same folder
-    model_config = Path(args.resume).parent / "config.json"
+    model_config = Path(args.resume).parent / "config_server.json"
     with model_config.open() as f:
         config = ConfigParser(json.load(f), resume=args.resume)
 

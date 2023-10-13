@@ -51,7 +51,7 @@ class CTCCharTextEncoder(CharTextEncoder):
                     new_pref = prefix + next_char
 
                 last_char = next_char
-                new_state[(new_pref, last_char)] += prefix_p * next_char_p
+                new_state[(new_pref, last_char)] += prefix_p * next_char_p.item()
         
         return new_state
 
@@ -62,19 +62,19 @@ class CTCCharTextEncoder(CharTextEncoder):
         return dict(current_state[:beam_size])
 
 
-    def ctc_beam_search(self, probs: torch.tensor, probs_length,
-                        beam_size: int = 100) -> List[Hypothesis]:
+    def ctc_beam_search(self, probs: torch.tensor, probs_len: torch.tensor, beam_size: int = 100) -> List[Hypothesis]:
         """
         Performs beam search and returns a list of pairs (hypothesis, hypothesis probability).
         """
         assert len(probs.shape) == 2
         char_length, voc_size = probs.shape
         assert voc_size == len(self.ind2char)
+        probs = probs[:probs_len]
         hypos: List[Hypothesis] = []
         # TODO: your code here
         state = {('', self.EMPTY_TOK): 1.0}
         for dist in probs:
             state = self._extend_and_merge(state, dist)
             state = self._truncate(state, beam_size)
-        hypos = [Hypothesis(text, p) for (text, _), p in state.items()]
+        hypos = [Hypothesis(''.join(text), p) for (text, _), p in state.items()]
         return sorted(hypos, key=lambda x: x.prob, reverse=True)

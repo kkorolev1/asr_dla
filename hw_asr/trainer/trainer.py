@@ -32,6 +32,7 @@ class Trainer(BaseTrainer):
             device,
             dataloaders,
             text_encoder,
+            decode_method="argmax",
             lr_scheduler=None,
             len_epoch=None,
             skip_oom=True,
@@ -58,6 +59,7 @@ class Trainer(BaseTrainer):
         self.evaluation_metrics = MetricTracker(
             "loss", *[m.name for m in self.metrics], writer=self.writer
         )
+        self.decode_method = decode_method
 
     @staticmethod
     def move_batch_to_device(batch, device: torch.device):
@@ -210,31 +212,57 @@ class Trainer(BaseTrainer):
             *args,
             **kwargs,
     ):
-        # TODO: implement logging of beam search results
         if self.writer is None:
             return
-        argmax_inds = log_probs.cpu().argmax(-1).numpy()
-        argmax_inds = [
-            inds[: int(ind_len)]
-            for inds, ind_len in zip(argmax_inds, log_probs_length.cpu().numpy())
-        ]
-        argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
-        argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
-        tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
-        shuffle(tuples)
-        rows = {}
-        for pred, target, raw_pred, audio_path in tuples[:examples_to_log]:
-            target = BaseTextEncoder.normalize_text(target)
-            wer = calc_wer(target, pred) * 100
-            cer = calc_cer(target, pred) * 100
+        random_indices = torch.randperm(log_probs_length.size(0))[:examples_to_log]
+        log_probs = log_probs[random_indices].detach().cpu()
+        log_probs_length = log_probs_length[random_indices].detach().cpu().numpy()
 
-            rows[Path(audio_path).name] = {
-                "target": target,
-                "raw prediction": raw_pred,
-                "predictions": pred,
-                "wer": wer,
-                "cer": cer,
-            }
+        if self.decode_method == "argmax":
+            argmax_inds = log_probs.argmax(-1).numpy()
+            argmax_inds = [
+                inds[: int(ind_len)]
+                for inds, ind_len in zip(argmax_inds, log_probs_length)
+            ]
+            argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
+            argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
+
+            tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
+
+            rows = {}
+            for pred, target, raw_pred, audio_path in tuples:
+                target = BaseTextEncoder.normalize_text(target)
+                wer = calc_wer(target, pred) * 100
+                cer = calc_cer(target, pred) * 100
+
+                rows[Path(audio_path).name] = {
+                    "target": target,
+                    "raw prediction": raw_pred,
+                    "predictions": pred,
+                    "wer": wer,
+                    "cer": cer
+                }
+        else:
+            beamsearch_texts = [
+                self.text_encoder.ctc_beam_search(log_probs_, log_probs_len_, beam_size=3)[0].text
+                for log_probs_, log_probs_len_ in zip(log_probs, log_probs_length)
+            ]
+
+            tuples = list(zip(beamsearch_texts, text, audio_path))
+
+            rows = {}
+            for pred, target, audio_path in tuples:
+                target = BaseTextEncoder.normalize_text(target)
+                wer = calc_wer(target, pred) * 100
+                cer = calc_cer(target, pred) * 100
+
+                rows[Path(audio_path).name] = {
+                    "target": target,
+                    "predictions": pred,
+                    "wer": wer,
+                    "cer": cer
+                }
+
         self.writer.add_table("predictions", pd.DataFrame.from_dict(rows, orient="index"))
 
     def _log_spectrogram(self, spectrogram_batch):
