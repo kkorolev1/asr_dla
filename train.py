@@ -24,8 +24,6 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
 
-from hw_asr.base.base_text_encoder import BaseTextEncoder
-import torch
 
 def main(config):
     logger = config.get_logger("train")

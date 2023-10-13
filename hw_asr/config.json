@@ -37,9 +37,9 @@
     "args": {
       "n_feats": 80,
       "encoder_layers": 16,
-      "encoder_dim": 256,
+      "encoder_dim": 144,
       "decoder_layers": 1,
-      "decoder_dim": 640,
+      "decoder_dim": 320,
       "attention_heads": 4,
       "conv_kernel_size": 31,
       "feed_forward_expansion": 4,
@@ -51,7 +51,7 @@
   },
   "data": {
     "train": {
-      "batch_size": 16,
+      "batch_size": 32,
       "num_workers": 5,
       "datasets": [
         {
@@ -75,7 +75,7 @@
       ]
     },
     "val": {
-      "batch_size": 16,
+      "batch_size": 32,
       "num_workers": 5,
       "datasets": [
         {
@@ -88,7 +88,7 @@
       ]
     },    
     "test-clean": {
-      "batch_size": 16,
+      "batch_size": 32,
       "num_workers": 5,
       "datasets": [
         {
@@ -133,7 +133,7 @@
   "lr_scheduler": {
     "type": "TransformerLrScheduler",
     "args": {
-      "d_model": 256,
+      "d_model": 144,
       "warmup_steps": 10000
     }
   },
@@ -146,9 +146,8 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer_big",
+    "wandb_run_name": "conformer_small",
     "len_epoch": 2000,
-    "grad_norm_clip": 10,
-    "decode_method": "argmax"
+    "grad_norm_clip": 10
   }
 }
