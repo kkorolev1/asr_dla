@@ -51,7 +51,7 @@
   },
   "data": {
     "train": {
-      "batch_size": 32,
+      "batch_size": 16,
       "num_workers": 5,
       "datasets": [
         {
@@ -75,7 +75,7 @@
       ]
     },
     "val": {
-      "batch_size": 32,
+      "batch_size": 16,
       "num_workers": 5,
       "datasets": [
         {
@@ -88,7 +88,7 @@
       ]
     },    
     "test-clean": {
-      "batch_size": 32,
+      "batch_size": 16,
       "num_workers": 5,
       "datasets": [
         {
@@ -147,7 +147,7 @@
     "visualize": "wandb",
     "wandb_project": "asr_project",
     "wandb_run_name": "conformer_big",
-    "len_epoch": 1200,
+    "len_epoch": 2000,
     "grad_norm_clip": 10,
     "decode_method": "argmax"
   }
