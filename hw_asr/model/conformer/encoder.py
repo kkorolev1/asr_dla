@@ -3,9 +3,15 @@ import torch.nn as nn
 
 from hw_asr.model.conformer.convolution import ConvSubsampling, ConvolutionModule
 from hw_asr.model.conformer.feed_forward import FeedForwardModule
-from hw_asr.model.conformer.attention import MultiHeadAttentionModule
+from hw_asr.model.conformer.attention import PositionalEncoder, MultiHeadAttentionModule, RelativeMultiHeadAttentionModule
 
-
+"""
+def lengths_to_padding_mask(lengths, max_length):
+    mask = torch.ones(lengths.shape[0], max_length, max_length, device=lengths.device, dtype=bool)
+    for i, l in enumerate(lengths):
+        mask[i, :, :l] = 0
+    return mask
+"""
 def lengths_to_padding_mask(lengths):
     batch_size = lengths.shape[0]
     max_length = int(torch.max(lengths).item())
@@ -13,7 +19,6 @@ def lengths_to_padding_mask(lengths):
         batch_size, max_length
     ) >= lengths.unsqueeze(1)
     return padding_mask
-
 
 class Residual(nn.Module):
     def __init__(self, module, input_factor=1.0, module_factor=1.0):
@@ -59,16 +64,22 @@ class ConformerEncoder(nn.Module):
         self.conv_subsampling = ConvSubsampling(out_channels=encoder_dim, kernel_size=3)
         self.linear = nn.Linear(encoder_dim * (((n_feats - 1) // 2 - 1) // 2), encoder_dim)
         self.dropout = nn.Dropout(encoder_dropout)
-        self.blocks = nn.ModuleList([ConformerBlock(encoder_dim=encoder_dim, attention_heads=attention_heads, 
-                                                    conv_kernel_size=conv_kernel_size, feed_forward_dropout=feed_forward_dropout,
-                                                    feed_forward_expansion=feed_forward_expansion, attention_dropout=attention_dropout,
+        #positional_encoder = PositionalEncoder(encoder_dim)
+        self.blocks = nn.ModuleList([ConformerBlock(encoder_dim=encoder_dim, 
+                                                    attention_heads=attention_heads, 
+                                                    conv_kernel_size=conv_kernel_size,
+                                                    feed_forward_dropout=feed_forward_dropout,
+                                                    feed_forward_expansion=feed_forward_expansion,
+                                                    attention_dropout=attention_dropout,
                                                     conv_dropout=conv_dropout) for _ in range(encoder_layers)])
 
     def forward(self, x, lengths):
-        x = self.conv_subsampling(x)
+        #padding_mask = lengths_to_padding_mask(lengths, x.shape[1])
         padding_mask = lengths_to_padding_mask(lengths)
+        x = self.conv_subsampling(x)
         padding_mask = padding_mask[:, :-2:2]
         padding_mask = padding_mask[:, :-2:2]
+        #padding_mask = padding_mask[:, :-2:2, :-2:2]
         assert x.shape[1] == padding_mask.shape[1]
 
         x = self.linear(x)

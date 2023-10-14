@@ -53,11 +53,12 @@ class Trainer(BaseTrainer):
         self.log_step = 50
 
         self.train_metrics = MetricTracker(
-            "loss", "grad norm", *[m.name for m in self.metrics], writer=self.writer
+            "loss", "grad norm", *[m.name for m in self.metrics if "beamsearch" not in m.name], writer=self.writer
         )
         self.evaluation_metrics = MetricTracker(
             "loss", *[m.name for m in self.metrics], writer=self.writer
         )
+        self.accum_iters = config["trainer"]["accum_iters"]
 
     @staticmethod
     def move_batch_to_device(batch, device: torch.device):
@@ -90,6 +91,7 @@ class Trainer(BaseTrainer):
             try:
                 batch = self.process_batch(
                     batch,
+                    batch_idx,
                     is_train=True,
                     metrics=self.train_metrics,
                 )
@@ -132,10 +134,8 @@ class Trainer(BaseTrainer):
 
         return log
 
-    def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
+    def process_batch(self, batch, batch_idx, is_train: bool, metrics: MetricTracker):
         batch = self.move_batch_to_device(batch, self.device)
-        if is_train:
-            self.optimizer.zero_grad()
         outputs = self.model(**batch)
         if type(outputs) is dict:
             batch.update(outputs)
@@ -150,9 +150,12 @@ class Trainer(BaseTrainer):
         if is_train:
             batch["loss"].backward()
             self._clip_grad_norm()
-            self.optimizer.step()
-            if self.lr_scheduler is not None:
-                self.lr_scheduler.step()
+
+            if (batch_idx + 1) % self.accum_iters == 0 or (batch_idx + 1) == self.len_epoch:
+                self.optimizer.step()
+                if self.lr_scheduler is not None:
+                    self.lr_scheduler.step()
+                self.optimizer.zero_grad()
 
         metrics.update("loss", batch["loss"].item())
         for met in self.metrics:
@@ -176,6 +179,7 @@ class Trainer(BaseTrainer):
             ):
                 batch = self.process_batch(
                     batch,
+                    batch_idx,
                     is_train=False,
                     metrics=self.evaluation_metrics,
                 )

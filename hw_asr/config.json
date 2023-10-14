@@ -148,6 +148,7 @@
     "wandb_project": "asr_project",
     "wandb_run_name": "conformer_small",
     "len_epoch": 2000,
-    "grad_norm_clip": 10
+    "grad_norm_clip": 10,
+    "accum_iters": 2
   }
 }
