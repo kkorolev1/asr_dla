@@ -83,8 +83,7 @@ class CTCCharTextEncoder(CharTextEncoder):
                     new_beam[(sentence, last_char)] += v * prob[i]
                 else:
                     new_last_char = self.ind2char[i]
-                    new_sentence = (sentence + last_char).replace(self.EMPTY_TOK, '')\
-                                    .replace("'", "").replace("|", "")
+                    new_sentence = (sentence + last_char).replace(self.EMPTY_TOK, '')
                     new_beam[(new_sentence, new_last_char)] += v * prob[i]
 
         return new_beam
