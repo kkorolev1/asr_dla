@@ -27,4 +27,7 @@ class TestTextEncoder(unittest.TestCase):
         hypos = text_encoder.ctc_beam_search(probs, probs.shape[0], beam_size=3)
         print(hypos)
 
+        print(text_encoder.decode(probs.argmax(-1)))
+        
+
         

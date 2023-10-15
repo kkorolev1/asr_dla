@@ -161,8 +161,8 @@
     "visualize": "wandb",
     "wandb_project": "asr_project",
     "wandb_run_name": "conformer_big",
-    "len_epoch": 4000,
+    "len_epoch": 400,
     "grad_norm_clip": 10,
-    "accum_iters": 4
+    "accum_iters": 2
   }
 }
