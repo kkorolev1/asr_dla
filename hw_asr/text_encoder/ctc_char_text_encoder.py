@@ -41,8 +41,8 @@ class CTCCharTextEncoder(CharTextEncoder):
     def _extend_and_merge(self, current_state, dist):
         new_state = defaultdict(float)
 
-        for next_char_index, next_char_p in enumerate(dist):
-            for (prefix, last_char), prefix_p in current_state.items():
+        for (prefix, last_char), prefix_p in current_state.items():
+            for next_char_index, next_char_p in enumerate(dist):
                 next_char = self.ind2char[next_char_index]
 
                 if next_char == last_char or next_char == self.EMPTY_TOK:
@@ -57,8 +57,7 @@ class CTCCharTextEncoder(CharTextEncoder):
 
 
     def _truncate(self, current_state, beam_size):
-        current_state = list(current_state.items())
-        current_state = sorted(current_state, key=lambda x: -x[1])
+        current_state = sorted(current_state.items(), key=lambda x: -x[1])
         return dict(current_state[:beam_size])
 
 
@@ -69,12 +68,13 @@ class CTCCharTextEncoder(CharTextEncoder):
         assert len(probs.shape) == 2
         char_length, voc_size = probs.shape
         assert voc_size == len(self.ind2char)
-        probs = probs[:probs_len]
+        probs = torch.softmax(probs[:probs_len], dim=1)
+
         hypos: List[Hypothesis] = []
-        # TODO: your code here
         state = {('', self.EMPTY_TOK): 1.0}
         for dist in probs:
             state = self._extend_and_merge(state, dist)
             state = self._truncate(state, beam_size)
         hypos = [Hypothesis(''.join(text), p) for (text, _), p in state.items()]
         return sorted(hypos, key=lambda x: x.prob, reverse=True)
+    
