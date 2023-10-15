@@ -223,6 +223,8 @@ class Trainer(BaseTrainer):
         random_indices = torch.randperm(log_probs_length.size(0))[:examples_to_log]
         log_probs = log_probs[random_indices].detach().cpu()
         log_probs_length = log_probs_length[random_indices].detach().cpu().numpy()
+        text = [text[idx] for idx in random_indices]
+        audio_path = [audio_path[idx] for idx in random_indices]
 
         argmax_inds = log_probs.argmax(-1).numpy()
         argmax_inds = [
