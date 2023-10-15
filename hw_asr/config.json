@@ -128,20 +128,6 @@
       "args": {
         "name": "CER (argmax)"
       }
-    },
-    {
-      "type": "BeamSearchWERMetric",
-      "args": {
-        "name": "WER (beamsearch)",
-        "beam_size": 3
-      }
-    },
-    {
-      "type": "BeamSearchCERMetric",
-      "args": {
-        "name": "CER (beamsearch)",
-        "beam_size": 3
-      }
     }
   ],
   "lr_scheduler": {
@@ -152,7 +138,7 @@
     }
   },
   "trainer": {
-    "epochs": 50,
+    "epochs": 1000,
     "save_dir": "saved/",
     "save_period": 5,
     "verbosity": 2,
@@ -163,6 +149,6 @@
     "wandb_run_name": "conformer_big",
     "len_epoch": 400,
     "grad_norm_clip": 10,
-    "accum_iters": 2
+    "accum_iters": 128
   }
 }
