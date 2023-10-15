@@ -117,7 +117,7 @@ class Trainer(BaseTrainer):
                 self.writer.add_scalar(
                     "learning rate", self.lr_scheduler.get_last_lr()[0]
                 )
-                self._log_predictions(**batch)
+                self._log_predictions(**batch, is_train=True)
                 self._log_spectrogram(batch["spectrogram"])
                 self._log_audio(batch["audio"])
                 self._log_scalars(self.train_metrics)
@@ -187,13 +187,13 @@ class Trainer(BaseTrainer):
                 )
             self.writer.set_step(epoch * self.len_epoch, part)
             self._log_scalars(self.evaluation_metrics)
-            self._log_predictions(**batch)
+            self._log_predictions(**batch, is_train=False)
             self._log_spectrogram(batch["spectrogram"])
             self._log_audio(batch["audio"])
 
         # add histogram of model parameters to the tensorboard
-        for name, p in self.model.named_parameters():
-            self.writer.add_histogram(name, p, bins="auto")
+        #for name, p in self.model.named_parameters():
+            #self.writer.add_histogram(name, p, bins="auto")
         return self.evaluation_metrics.result()
 
     def _progress(self, batch_idx):
@@ -212,6 +212,7 @@ class Trainer(BaseTrainer):
             log_probs,
             log_probs_length,
             audio_path,
+            is_train,
             examples_to_log=10,
             *args,
             **kwargs,
@@ -219,28 +220,60 @@ class Trainer(BaseTrainer):
         if self.writer is None:
             return
         
-        argmax_inds = log_probs.detach().cpu().argmax(-1).numpy()
+        random_indices = torch.randperm(log_probs_length.size(0))[:examples_to_log]
+        log_probs = log_probs[random_indices].detach().cpu()
+        log_probs_length = log_probs_length[random_indices].detach().cpu().numpy()
+
+        argmax_inds = log_probs.argmax(-1).numpy()
         argmax_inds = [
             inds[: int(ind_len)]
             for inds, ind_len in zip(argmax_inds, log_probs_length.detach().cpu().numpy())
         ]
         argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
         argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
-        tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
-        shuffle(tuples)
+        
         rows = {}
-        for pred, target, raw_pred, audio_path in tuples[:examples_to_log]:
-            target = BaseTextEncoder.normalize_text(target)
-            wer = calc_wer(target, pred) * 100
-            cer = calc_cer(target, pred) * 100
 
-            rows[Path(audio_path).name] = {
-                "target": target,
-                "raw prediction": raw_pred,
-                "predictions": pred,
-                "wer": wer,
-                "cer": cer,
-            }        
+        if is_train:
+            tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
+
+            for pred, target, raw_pred, audio_path in tuples:
+                target = BaseTextEncoder.normalize_text(target)
+                wer = calc_wer(target, pred) * 100
+                cer = calc_cer(target, pred) * 100
+
+                rows[Path(audio_path).name] = {
+                    "target": target,
+                    "raw prediction": raw_pred,
+                    "predictions": pred,
+                    "wer": wer,
+                    "cer": cer,
+                }       
+        else:
+            beamsearch_texts = [
+                self.text_encoder.ctc_beam_search(log_probs_, log_probs_len_, beam_size=3)[0].text
+                for log_probs_, log_probs_len_ in zip(log_probs, log_probs_length)
+            ]
+
+            tuples = list(zip(argmax_texts, beamsearch_texts, text, argmax_texts_raw, audio_path))
+
+            for argmax_pred, beam_search_pred, target, argmax_raw_pred, audio_path in tuples:
+                target = BaseTextEncoder.normalize_text(target)
+                argmax_wer = calc_wer(target, argmax_pred) * 100
+                argmax_cer = calc_cer(target, argmax_pred) * 100
+                beamsearch_wer = calc_wer(target, beam_search_pred) * 100
+                beamsearch_cer = calc_cer(target, beam_search_pred) * 100
+
+                rows[Path(audio_path).name] = {
+                    "target": target,
+                    "raw prediction": argmax_raw_pred,
+                    "argmax_predictions": argmax_pred,
+                    "argmax_wer": argmax_wer,
+                    "argmax_cer": argmax_cer,
+                    "beamsearch_predictions": beam_search_pred,
+                    "beamsearch_wer": beamsearch_wer,
+                    "beamsearch_cer": beamsearch_cer,
+                }              
 
         self.writer.add_table("predictions", pd.DataFrame.from_dict(rows, orient="index"))
 
