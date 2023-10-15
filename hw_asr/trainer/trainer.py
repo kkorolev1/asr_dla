@@ -105,8 +105,8 @@ class Trainer(BaseTrainer):
                     continue
                 else:
                     raise e
-            if (batch_idx + 1) % self.accum_iters == 0: 
-                self.train_metrics.update("grad norm", self.get_grad_norm())
+            
+            self.train_metrics.update("grad norm", self.get_grad_norm())
             if batch_idx % self.log_step == 0:
                 self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
                 self.logger.debug(
@@ -294,6 +294,8 @@ class Trainer(BaseTrainer):
         if isinstance(parameters, torch.Tensor):
             parameters = [parameters]
         parameters = [p for p in parameters if p.grad is not None]
+        if len(parameters) == 0:
+            return 0
         total_norm = torch.norm(
             torch.stack(
                 [torch.norm(p.grad.detach(), norm_type).cpu() for p in parameters]
