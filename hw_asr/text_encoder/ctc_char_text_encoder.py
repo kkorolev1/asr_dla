@@ -38,43 +38,56 @@ class CTCCharTextEncoder(CharTextEncoder):
         return ''.join(res)
 
 
-    def _extend_and_merge(self, current_state, dist):
-        new_state = defaultdict(float)
-
-        for (prefix, last_char), prefix_p in current_state.items():
-            for next_char_index, next_char_p in enumerate(dist):
-                next_char = self.ind2char[next_char_index]
-
-                if next_char == last_char or next_char == self.EMPTY_TOK:
-                    new_pref = prefix
-                else:
-                    new_pref = prefix + next_char
-
-                last_char = next_char
-                new_state[(new_pref, last_char)] += prefix_p * next_char_p.item()
-        
-        return new_state
-
-
-    def _truncate(self, current_state, beam_size):
-        current_state = sorted(current_state.items(), key=lambda x: -x[1])
-        return dict(current_state[:beam_size])
-
-
-    def ctc_beam_search(self, probs: torch.tensor, probs_len: torch.tensor, beam_size: int = 100) -> List[Hypothesis]:
+    def ctc_beam_search(self, probs, probs_length, beam_size: int = 100) -> List[Hypothesis]:
         """
         Performs beam search and returns a list of pairs (hypothesis, hypothesis probability).
+        :param probs: probabilities from model of shape [L, H]
+        :param beam_size: size of beam to use in decoding
+
+        Note: unpadding of probs should be done before passing to this function
         """
         assert len(probs.shape) == 2
         char_length, voc_size = probs.shape
         assert voc_size == len(self.ind2char)
-        probs = torch.softmax(probs[:probs_len], dim=1)
-
-        hypos: List[Hypothesis] = []
-        state = {('', self.EMPTY_TOK): 1.0}
-        for dist in probs:
-            state = self._extend_and_merge(state, dist)
-            state = self._truncate(state, beam_size)
-        hypos = [Hypothesis(''.join(text), p) for (text, _), p in state.items()]
-        return sorted(hypos, key=lambda x: x.prob, reverse=True)
     
+        beam = defaultdict(float)
+
+        probs = torch.softmax(probs[:probs_length], dim=1)
+
+        for prob in probs:
+            beam = self._extend_beam(beam, prob)
+            beam = self._cut_beam(beam, beam_size)
+
+        final_beam = defaultdict(float)
+        for (sentence, last_char), v in beam.items():
+            final_sentence = (sentence + last_char).strip().replace(self.EMPTY_TOK, "")
+            final_beam[final_sentence] += v
+            
+        sorted_beam = sorted(final_beam.items(), key=lambda x: -x[1])
+        result = [Hypothesis(sentence, v) \
+                for sentence, v in sorted_beam]
+        return result
+
+    def _extend_beam(self, beam, prob):
+        if len(beam) == 0:
+            for i in range(len(prob)):
+                last_char = self.ind2char[i]
+                beam[('', last_char)] += prob[i]
+            return beam
+
+        new_beam = defaultdict(float)
+        
+        for (sentence, last_char), v in beam.items():
+            for i in range(len(prob)):
+                if self.ind2char[i] == last_char:
+                    new_beam[(sentence, last_char)] += v * prob[i]
+                else:
+                    new_last_char = self.ind2char[i]
+                    new_sentence = (sentence + last_char).replace(self.EMPTY_TOK, '')\
+                                    .replace("'", "").replace("|", "")
+                    new_beam[(new_sentence, new_last_char)] += v * prob[i]
+
+        return new_beam
+
+    def _cut_beam(self, beam, beam_size):
+        return dict(sorted(beam.items(), key=lambda x: -x[1])[:beam_size])
