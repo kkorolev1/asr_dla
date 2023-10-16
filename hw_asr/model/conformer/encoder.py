@@ -92,6 +92,7 @@ class ConformerEncoder(nn.Module):
         #padding_mask = padding_mask[:, :-2:2]
         #padding_mask = padding_mask[:, :-2:2]
         padding_mask = padding_mask[:, :-2:2, :-2:2]
+        padding_mask = padding_mask[:, :-2:2, :-2:2]
         assert x.shape[1] == padding_mask.shape[1]
 
         x = self.linear(x)
