@@ -1,5 +1,5 @@
 {
-  "name": "one_batch_test",
+  "name": "one_batch",
   "n_gpu": 1,
   "preprocessing": {
     "sr": 16000,
@@ -7,10 +7,18 @@
       "type": "MelSpectrogram",
       "args": {
         "n_mels": 80,
-        "hop_length": 160
+        "hop_length": 160,
+        "n_fft": 512
       }
     },
     "log_spec": true
+  },
+  "text_encoder": {
+    "type": "CTCCharTextEncoder",
+    "args": {
+      "with_lm": true,
+      "kenlm_path": "/kaggle/input/libri-lm/3-gram.arpa"
+    }
   },
   "augmentations": {
     "wave": [
@@ -37,13 +45,14 @@
     "args": {
       "n_feats": 80,
       "encoder_layers": 16,
-      "encoder_dim": 256,
+      "encoder_dim": 144,
       "decoder_layers": 1,
-      "decoder_dim": 640,
+      "decoder_dim": 320,
       "attention_heads": 4,
       "conv_kernel_size": 31,
       "feed_forward_expansion": 4,
       "encoder_dropout": 0.1,
+      "decoder_dropout": 0.1,
       "feed_forward_dropout": 0.1,
       "attention_dropout": 0.1,
       "conv_dropout": 0.1
@@ -51,29 +60,29 @@
   },
   "data": {
     "train": {
-      "batch_size": 10,
-      "num_workers": 0,
+      "batch_size": 32,
+      "num_workers": 5,
       "datasets": [
         {
           "type": "LibrispeechDataset",
           "args": {
             "part": "dev-clean",
-            "data_dir": "/kaggle/input/librispeech-asr-wav-dataset",
-            "limit": 10
+            "limit": 10,
+            "data_dir": "/kaggle/input/librispeech-asr-wav-dataset"
           }
         }
       ]
     },
     "val": {
-      "batch_size": 10,
-      "num_workers": 0,
+      "batch_size": 32,
+      "num_workers": 5,
       "datasets": [
         {
           "type": "LibrispeechDataset",
           "args": {
             "part": "dev-clean",
-            "data_dir": "/kaggle/input/librispeech-asr-wav-dataset",
-            "limit": 10
+            "limit": 10,
+            "data_dir": "/kaggle/input/librispeech-asr-wav-dataset"
           }
         }
       ]
@@ -111,21 +120,23 @@
       "type": "BeamSearchWERMetric",
       "args": {
         "name": "WER (beamsearch)",
-        "beam_size": 3
+        "beam_size": 3,
+        "with_lm": true
       }
     },
     {
       "type": "BeamSearchCERMetric",
       "args": {
         "name": "CER (beamsearch)",
-        "beam_size": 3
+        "beam_size": 3,
+        "with_lm": true
       }
     }
   ],
   "lr_scheduler": {
     "type": "TransformerLrScheduler",
     "args": {
-      "d_model": 256,
+      "d_model": 144,
       "warmup_steps": 10000
     }
   },
@@ -138,9 +149,9 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "accum_iters_test",
+    "wandb_run_name": "conformer",
     "len_epoch": 100,
     "grad_norm_clip": 10,
-    "accum_iters": 4
+    "accum_iters": 1
   }
 }
