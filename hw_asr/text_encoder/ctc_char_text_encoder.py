@@ -28,7 +28,6 @@ class CTCCharTextEncoder(CharTextEncoder):
             assert vocab_path is not None, "Empty vocab path"
             with open(vocab_path) as f:
                 unigrams = [w.strip() for w in f.readlines()]
-            print("UNIGRAMS:", unigrams)
             self.decoder = build_ctcdecoder([""] + [w.upper() for w in self.alphabet], kenlm_model_path=kenlm_path, unigrams=unigrams)
 
     def ctc_decode(self, inds: List[int]) -> str:
@@ -96,7 +95,7 @@ class CTCCharTextEncoder(CharTextEncoder):
         if len(probs.shape) == 2:
             probs = probs.unsqueeze(0)
 
-        probs = [probs[i, :probs_length[i]] for i in range(probs.shape[0])]
+        probs = [probs[i][:probs_length[i]].numpy() for i in range(probs_length.shape[0])]
 
         with multiprocessing.get_context("fork").Pool() as pool:
             texts = self.lm_decoder.decode_batch(pool, probs, beam_width=beam_size)

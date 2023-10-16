@@ -36,7 +36,15 @@ class BeamSearchWERMetric(BaseMetric):
     def __call__(self, log_probs: Tensor, log_probs_length: Tensor, text: List[str], **kwargs):
         wers = []
         predictions = log_probs.detach().cpu()
-        lengths = log_probs_length.detach().cpu().numpy()
+        lengths = log_probs_length.detach().cpu()
+
+        if self.with_lm and hasattr(self.text_encoder, "ctc_lm_beam_search"):
+            pred_texts = self.text_encoder.ctc_lm_beam_search(predictions, lengths, beam_size=self.beam_size)
+            for pred_text, target_text in zip(pred_texts, text):
+                target_text = BaseTextEncoder.normalize_text(target_text)
+                wers.append(calc_wer(target_text, pred_text))
+            return sum(wers) / len(wers)
+
         for log_prob_vec, length, target_text in zip(predictions, lengths, text):
             target_text = BaseTextEncoder.normalize_text(target_text)
             if hasattr(self.text_encoder, "ctc_beam_search"):

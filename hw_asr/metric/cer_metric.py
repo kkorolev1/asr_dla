@@ -39,11 +39,16 @@ class BeamSearchCERMetric(BaseMetric):
         predictions = log_probs.detach().cpu()
         lengths = log_probs_length.detach().cpu()
 
+        if self.with_lm and hasattr(self.text_encoder, "ctc_lm_beam_search"):
+            pred_texts = self.text_encoder.ctc_lm_beam_search(predictions, lengths, beam_size=self.beam_size)
+            for pred_text, target_text in zip(pred_texts, text):
+                target_text = BaseTextEncoder.normalize_text(target_text)
+                cers.append(calc_cer(target_text, pred_text))
+            return sum(cers) / len(cers)
+
         for log_prob_vec, length, target_text in zip(predictions, lengths, text):
             target_text = BaseTextEncoder.normalize_text(target_text)
-            if self.with_lm and hasattr(self.text_encoder, "ctc_lm_beam_search"):
-                pred_text = self.text_encoder.ctc_lm_beam_search(log_prob_vec, length, beam_size=self.beam_size)[0].text
-            elif hasattr(self.text_encoder, "ctc_beam_search"):
+            if hasattr(self.text_encoder, "ctc_beam_search"):
                 pred_text = self.text_encoder.ctc_beam_search(log_prob_vec, length, beam_size=self.beam_size)[0].text
             else:
                 pred_text = self.text_encoder.decode(log_prob_vec[:length])
