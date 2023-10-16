@@ -9,7 +9,8 @@ from hw_asr.model.conformer.decoder import ConformerDecoder
 class Conformer(BaseModel):
     def __init__(self, n_feats, n_class, encoder_layers=16, encoder_dim=144,
                  encoder_dropout=0.1, decoder_layers=1,
-                 decoder_dim=320, attention_heads=4, conv_kernel_size=31,
+                 decoder_dim=320, decoder_dropout=0.1,
+                 attention_heads=4, conv_kernel_size=31,
                  feed_forward_dropout=0.1, feed_forward_expansion=2, attention_dropout=0.1, conv_dropout=0.1):
         super().__init__(n_feats, n_class)
         self.encoder = ConformerEncoder(n_feats=n_feats, encoder_layers=encoder_layers, encoder_dim=encoder_dim, 
@@ -18,7 +19,8 @@ class Conformer(BaseModel):
                                         feed_forward_expansion=feed_forward_expansion, attention_dropout=attention_dropout,
                                         conv_dropout=conv_dropout)
         self.decoder = ConformerDecoder(encoder_dim=encoder_dim, decoder_layers=decoder_layers,
-                                        decoder_dim=decoder_dim, n_class=n_class)
+                                        decoder_dim=decoder_dim, decoder_dropout=decoder_dropout,
+                                        n_class=n_class)
 
 
     def forward(self, spectrogram, spectrogram_length, **batch):
