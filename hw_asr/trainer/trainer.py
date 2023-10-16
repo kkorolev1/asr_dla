@@ -252,11 +252,7 @@ class Trainer(BaseTrainer):
                     "cer": cer,
                 }       
         else:
-            beamsearch_texts = [
-                self.text_encoder.ctc_beam_search(log_probs_, log_probs_len_, beam_size=3)[0].text
-                for log_probs_, log_probs_len_ in zip(log_probs, log_probs_length)
-            ]
-
+            beamsearch_texts = self.text_encoder.ctc_lm_beam_search(log_probs, log_probs_length, beam_size=3)
             tuples = list(zip(argmax_texts, beamsearch_texts, text, argmax_texts_raw, audio_path))
 
             for argmax_pred, beam_search_pred, target, argmax_raw_pred, audio_path in tuples:
@@ -272,9 +268,9 @@ class Trainer(BaseTrainer):
                     "argmax_predictions": argmax_pred,
                     "argmax_wer": argmax_wer,
                     "argmax_cer": argmax_cer,
-                    "beamsearch_predictions": beam_search_pred,
-                    "beamsearch_wer": beamsearch_wer,
-                    "beamsearch_cer": beamsearch_cer,
+                    "beamsearch(lm)_predictions": beam_search_pred,
+                    "beamsearch(lm)_wer": beamsearch_wer,
+                    "beamsearch(lm)_cer": beamsearch_cer,
                 }              
 
         self.writer.add_table("predictions", pd.DataFrame.from_dict(rows, orient="index"))
