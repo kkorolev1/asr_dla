@@ -16,7 +16,7 @@ class Hypothesis(NamedTuple):
 class CTCCharTextEncoder(CharTextEncoder):
     EMPTY_TOK = "^"
 
-    def __init__(self, alphabet: List[str] = None, with_lm=False, kenlm_path=None):
+    def __init__(self, alphabet: List[str] = None, with_lm=False, kenlm_path=None, vocab_path=None):
         super().__init__(alphabet)
         vocab = [self.EMPTY_TOK] + list(self.alphabet)
         self.ind2char = dict(enumerate(vocab))
@@ -25,7 +25,11 @@ class CTCCharTextEncoder(CharTextEncoder):
 
         if self.with_lm:
             assert kenlm_path is not None, "Empty KENLM path"
-            self.decoder = build_ctcdecoder(list(self.alphabet), kenlm_model_path=kenlm_path)
+            assert vocab_path is not None, "Empty vocab path"
+            with open(vocab_path) as f:
+                unigrams = [w.strip() for w in f.readlines()]
+            print("UNIGRAMS:", unigrams)
+            self.decoder = build_ctcdecoder([""] + [w.upper() for w in self.alphabet], kenlm_model_path=kenlm_path, unigrams=unigrams)
 
     def ctc_decode(self, inds: List[int]) -> str:
         last_char = self.EMPTY_TOK
@@ -97,4 +101,4 @@ class CTCCharTextEncoder(CharTextEncoder):
         with multiprocessing.get_context("fork").Pool() as pool:
             texts = self.lm_decoder.decode_batch(pool, probs, beam_width=beam_size)
         
-        return texts
+        return [w.lower().replace("'", "").replace("|", "").replace("??", "").strip() for w in texts]

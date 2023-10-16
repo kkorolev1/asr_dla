@@ -17,7 +17,8 @@
     "type": "CTCCharTextEncoder",
     "args": {
       "with_lm": true,
-      "kenlm_path": "/kaggle/input/libri-lm/3-gram.arpa"
+      "kenlm_path": "/kaggle/input/libri-lm/3-gram.arpa",
+      "vocab_path": "/kaggle/input/libri-vocab/librispeech-vocab.txt"
     }
   },
   "augmentations": {
@@ -149,7 +150,7 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer",
+    "wandb_run_name": "one_batch_test",
     "len_epoch": 100,
     "grad_norm_clip": 10,
     "accum_iters": 1
