@@ -45,9 +45,9 @@ class CTCCharTextEncoder(CharTextEncoder):
 
     def _extend_beam(self, beam, prob):
         if len(beam) == 0:
-            for p in prob:
+            for i in range(len(prob)):
                 last_char = self.ind2char[i]
-                beam[('', last_char)] += p
+                beam[('', last_char)] += prob[i]
             return beam
 
         new_beam = defaultdict(float)
