@@ -98,6 +98,6 @@ class CTCCharTextEncoder(CharTextEncoder):
         probs = [probs[i][:probs_length[i]].numpy() for i in range(probs_length.shape[0])]
 
         with multiprocessing.get_context("fork").Pool() as pool:
-            texts = self.lm_decoder.decode_batch(pool, probs, beam_width=beam_size)
+            texts = self.decoder.decode_batch(pool, probs, beam_width=beam_size)
         
         return [w.lower().replace("'", "").replace("|", "").replace("??", "").strip() for w in texts]
