@@ -268,9 +268,9 @@ class Trainer(BaseTrainer):
                     "argmax_predictions": argmax_pred,
                     "argmax_wer": argmax_wer,
                     "argmax_cer": argmax_cer,
-                    "beamsearch(lm)_predictions": beam_search_pred,
-                    "beamsearch(lm)_wer": beamsearch_wer,
-                    "beamsearch(lm)_cer": beamsearch_cer,
+                    "beamsearch_predictions": beam_search_pred,
+                    "beamsearch_wer": beamsearch_wer,
+                    "beamsearch_cer": beamsearch_cer,
                 }              
 
         self.writer.add_table("predictions", pd.DataFrame.from_dict(rows, orient="index"))
