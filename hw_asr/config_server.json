@@ -7,10 +7,19 @@
       "type": "MelSpectrogram",
       "args": {
         "n_mels": 80,
-        "hop_length": 160
+        "hop_length": 160,
+        "n_fft": 512
       }
     },
     "log_spec": true
+  },
+  "text_encoder": {
+    "type": "CTCCharTextEncoder",
+    "args": {
+      "with_lm": true,
+      "kenlm_path": "3-gram.arpa",
+      "vocab_path": "librispeech-vocab.txt"
+    }
   },
   "augmentations": {
     "wave": [
@@ -42,8 +51,9 @@
       "decoder_dim": 320,
       "attention_heads": 4,
       "conv_kernel_size": 31,
-      "feed_forward_expansion": 2,
+      "feed_forward_expansion": 4,
       "encoder_dropout": 0.1,
+      "decoder_dropout": 0.1,
       "feed_forward_dropout": 0.1,
       "attention_dropout": 0.1,
       "conv_dropout": 0.1
@@ -58,8 +68,8 @@
           "type": "LibrispeechDataset",
           "args": {
             "part": "train-clean-100",
-            "max_audio_length": 20.0,
-            "max_text_length": 400
+            "max_audio_length": 16.7,
+            "max_text_length": 300
           }
         }
       ]
@@ -87,20 +97,7 @@
           }
         }
       ]
-    },
-    "test": {
-      "batch_size": 32,
-      "num_workers": 5,
-      "datasets": [
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "test-clean",
-            "limit": 32
-          }
-        }
-      ]
-    }    
+    }
   },
   "optimizer": {
     "type": "AdamW",
@@ -129,6 +126,22 @@
       "args": {
         "name": "CER (argmax)"
       }
+    },
+    {
+      "type": "BeamSearchWERMetric",
+      "args": {
+        "name": "WER (beamsearch)",
+        "beam_size": 3,
+        "with_lm": true
+      }
+    },
+    {
+      "type": "BeamSearchCERMetric",
+      "args": {
+        "name": "CER (beamsearch)",
+        "beam_size": 3,
+        "with_lm": true
+      }
     }
   ],
   "lr_scheduler": {
@@ -139,7 +152,7 @@
     }
   },
   "trainer": {
-    "epochs": 50,
+    "epochs": 100,
     "save_dir": "saved/",
     "save_period": 5,
     "verbosity": 2,
@@ -147,8 +160,9 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer",
-    "len_epoch": 900,
-    "grad_norm_clip": 10
+    "wandb_run_name": "server_check",
+    "len_epoch": 5000,
+    "grad_norm_clip": 10,
+    "accum_iters": 1
   }
 }
