@@ -34,7 +34,7 @@ class Trainer(BaseTrainer):
             text_encoder,
             lr_scheduler=None,
             len_epoch=None,
-            skip_oom=True,
+            skip_oom=True
     ):
         super().__init__(model, criterion, metrics, optimizer, config, device)
         self.skip_oom = skip_oom
@@ -59,6 +59,7 @@ class Trainer(BaseTrainer):
             "loss", *[m.name for m in self.metrics], writer=self.writer
         )
         self.accum_iters = config["trainer"]["accum_iters"]
+        self.fine_tune = config["trainer"]["fine_tune"]
 
         if config.resume is not None:
             self._resume_checkpoint(config.resume)
@@ -92,9 +93,8 @@ class Trainer(BaseTrainer):
                 "Warning: Optimizer or lr_scheduler given in config file is different "
                 "from that of checkpoint. Optimizer parameters not being resumed."
             )
-        else:
+        elif not self.fine_tune:
             self.optimizer.load_state_dict(checkpoint["optimizer"])
-            
             self.lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
 
         self.logger.info(
@@ -280,18 +280,18 @@ class Trainer(BaseTrainer):
         if is_train:
             tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
 
-            for pred, target, raw_pred, audio_path in tuples:
+            for argmax_pred, target, argmax_raw_pred, audio_path in tuples:
                 target = BaseTextEncoder.normalize_text(target)
-                wer = calc_wer(target, pred) * 100
-                cer = calc_cer(target, pred) * 100
+                argmax_wer = calc_wer(target, argmax_pred) * 100
+                argmax_cer = calc_cer(target, argmax_pred) * 100
 
                 rows[Path(audio_path).name] = {
                     "target": target,
-                    "raw prediction": raw_pred,
-                    "predictions": pred,
-                    "wer": wer,
-                    "cer": cer,
-                }       
+                    "raw prediction": argmax_raw_pred,
+                    "argmax_predictions": argmax_pred,
+                    "argmax_wer": argmax_wer,
+                    "argmax_cer": argmax_cer
+                }
         else:
             beamsearch_texts = self.text_encoder.ctc_lm_beam_search(log_probs, log_probs_length, beam_size=3)
             tuples = list(zip(argmax_texts, beamsearch_texts, text, argmax_texts_raw, audio_path))
@@ -331,8 +331,6 @@ class Trainer(BaseTrainer):
         if isinstance(parameters, torch.Tensor):
             parameters = [parameters]
         parameters = [p for p in parameters if p.grad is not None]
-        if len(parameters) == 0:
-            return 0
         total_norm = torch.norm(
             torch.stack(
                 [torch.norm(p.grad.detach(), norm_type).cpu() for p in parameters]
