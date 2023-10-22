@@ -147,7 +147,6 @@ class Trainer(BaseTrainer):
                 else:
                     raise e
             
-            self.train_metrics.update("grad norm", self.get_grad_norm())
             if batch_idx % self.log_step == 0:
                 self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
                 self.logger.debug(
@@ -197,6 +196,7 @@ class Trainer(BaseTrainer):
                 self.optimizer.step()
                 if self.lr_scheduler is not None:
                     self.lr_scheduler.step()
+                self.train_metrics.update("grad norm", self.get_grad_norm())
                 self.optimizer.zero_grad()
 
         metrics.update("loss", batch["loss"].item())
@@ -331,6 +331,7 @@ class Trainer(BaseTrainer):
         if isinstance(parameters, torch.Tensor):
             parameters = [parameters]
         parameters = [p for p in parameters if p.grad is not None]
+
         total_norm = torch.norm(
             torch.stack(
                 [torch.norm(p.grad.detach(), norm_type).cpu() for p in parameters]
