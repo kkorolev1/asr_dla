@@ -7,8 +7,7 @@
       "type": "MelSpectrogram",
       "args": {
         "n_mels": 80,
-        "hop_length": 160,
-        "n_fft": 512
+        "hop_length": 160
       }
     },
     "log_spec": true
@@ -194,10 +193,9 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer_fine_tune_other",
+    "wandb_run_name": "conformer_other",
     "len_epoch": 5000,
     "grad_norm_clip": 10,
-    "accum_iters": 1,
-    "fine_tune": true
+    "accum_iters": 1
   }
 }

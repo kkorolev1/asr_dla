@@ -59,7 +59,7 @@ class Trainer(BaseTrainer):
             "loss", *[m.name for m in self.metrics], writer=self.writer
         )
         self.accum_iters = config["trainer"]["accum_iters"]
-        self.fine_tune = config["trainer"]["fine_tune"]
+        self.fine_tune = config["trainer"].get("fine_tune", False)
 
         if config.resume is not None:
             self._resume_checkpoint(config.resume)
