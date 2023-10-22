@@ -65,7 +65,7 @@ class LibrispeechDataset(BaseDataset):
 
     def _create_index(self, part):
         index = []
-        split_dir = self._data_dir / part
+        split_dir = self._data_dir / part / "LibriSpeech" / part
         print("SPLIT DIR:", split_dir)
         if not split_dir.exists():
             self._load_part(part)
