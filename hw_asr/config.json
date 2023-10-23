@@ -46,11 +46,11 @@
       "n_feats": 80,
 
       "encoder_layers": 16,
-      "encoder_dim": 144,
+      "encoder_dim": 256,
       "encoder_dropout": 0.1,
 
       "decoder_layers": 1,
-      "decoder_dim": 320,
+      "decoder_dim": 640,
       "decoder_dropout": 0.1,
 
       "attention_heads": 4,
@@ -198,7 +198,7 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer_sanity_check",
+    "wandb_run_name": "conformer_medium",
     "len_epoch": 5000,
     "grad_norm_clip": 10,
     "accum_iters": 1
