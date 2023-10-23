@@ -73,7 +73,7 @@
           "args": {
             "part": "train-clean-100",
             "max_audio_length": 16.7,
-            "max_text_length": 250,
+            "max_text_length": 300,
             "data_dir": "/kaggle/input/librispeech"
           }
         },
@@ -82,7 +82,7 @@
           "args": {
             "part": "train-clean-360",
             "max_audio_length": 16.7,
-            "max_text_length": 250,
+            "max_text_length": 300,
             "data_dir": "/kaggle/input/librispeech"
           }
         },
@@ -91,7 +91,7 @@
           "args": {
             "part": "train-other-500",
             "max_audio_length": 16.7,
-            "max_text_length": 250,
+            "max_text_length": 300,
             "data_dir": "/kaggle/input/librispeech"
           }
         }
@@ -198,8 +198,8 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer_other_medium",
-    "len_epoch": 3000,
+    "wandb_run_name": "conformer_sanity_check",
+    "len_epoch": 5000,
     "grad_norm_clip": 10,
     "accum_iters": 1
   }
