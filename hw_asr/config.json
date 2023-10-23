@@ -44,18 +44,24 @@
     "type": "Conformer",
     "args": {
       "n_feats": 80,
+      "n_class": 28,
+
       "encoder_layers": 16,
       "encoder_dim": 256,
+      "encoder_dropout": 0.1,
+
       "decoder_layers": 1,
       "decoder_dim": 640,
-      "attention_heads": 4,
-      "conv_kernel_size": 31,
-      "feed_forward_expansion": 2,
-      "encoder_dropout": 0.1,
       "decoder_dropout": 0.1,
-      "feed_forward_dropout": 0.1,
+
+      "attention_heads": 4,
       "attention_dropout": 0.1,
-      "conv_dropout": 0.1
+
+      "conv_kernel_size": 31,
+      "conv_dropout": 0.1,
+
+      "feed_forward_expansion": 4,
+      "feed_forward_dropout": 0.1
     }
   },
   "data": {
@@ -181,7 +187,7 @@
     "type": "TransformerLrScheduler",
     "args": {
       "d_model": 256,
-      "warmup_steps": 15000
+      "warmup_steps": 10000
     }
   },
   "trainer": {

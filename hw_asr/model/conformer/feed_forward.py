@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 class FeedForwardModule(nn.Module):
-    def __init__(self, encoder_dim, feed_forward_expansion=2, dropout=0.1):
+    def __init__(self, encoder_dim, feed_forward_expansion, dropout):
         super().__init__()
         self.sequential = nn.Sequential(
             nn.LayerNorm(encoder_dim),
@@ -17,9 +17,4 @@ class FeedForwardModule(nn.Module):
 
     def forward(self, x):
         return self.sequential(x)
-    
 
-if __name__ == "__main__":
-    batch = torch.ones((32, 20, 32))
-    ffm = FeedForwardModule(32)
-    print(ffm(batch).shape)
