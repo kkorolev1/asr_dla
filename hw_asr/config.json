@@ -44,7 +44,6 @@
     "type": "Conformer",
     "args": {
       "n_feats": 80,
-      "n_class": 28,
 
       "encoder_layers": 16,
       "encoder_dim": 256,
@@ -74,7 +73,7 @@
           "args": {
             "part": "train-clean-100",
             "max_audio_length": 16.7,
-            "max_text_length": 200,
+            "max_text_length": 250,
             "data_dir": "/kaggle/input/librispeech"
           }
         },
@@ -83,7 +82,7 @@
           "args": {
             "part": "train-clean-360",
             "max_audio_length": 16.7,
-            "max_text_length": 200,
+            "max_text_length": 250,
             "data_dir": "/kaggle/input/librispeech"
           }
         },
@@ -92,7 +91,7 @@
           "args": {
             "part": "train-other-500",
             "max_audio_length": 16.7,
-            "max_text_length": 200,
+            "max_text_length": 250,
             "data_dir": "/kaggle/input/librispeech"
           }
         }
