@@ -122,10 +122,9 @@ class MultiHeadAttentionModule(nn.Module):
         self.attention = nn.MultiheadAttention(encoder_dim, attention_heads, dropout=dropout, batch_first=True)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, padding_mask):
+    def forward(self, x):
         x = self.layer_norm(x)
-        x = self.attention(query=x, key=x, value=x, 
-                           key_padding_mask=padding_mask, need_weights=False)[0]
+        x = self.attention(query=x, key=x, value=x, need_weights=False)[0]
         x = self.dropout(x)
         return x
     
