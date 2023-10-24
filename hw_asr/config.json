@@ -45,12 +45,12 @@
     "args": {
       "n_feats": 80,
 
-      "encoder_layers": 16,
-      "encoder_dim": 144,
+      "encoder_layers": 8,
+      "encoder_dim": 288,
       "encoder_dropout": 0.1,
 
       "decoder_layers": 1,
-      "decoder_dim": 320,
+      "decoder_dim": 576,
       "decoder_dropout": 0.1,
 
       "attention_heads": 4,
@@ -185,7 +185,7 @@
   "lr_scheduler": {
     "type": "TransformerLrScheduler",
     "args": {
-      "d_model": 144,
+      "d_model": 288,
       "warmup_steps": 10000
     }
   },
