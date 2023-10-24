@@ -6,7 +6,8 @@
     "spectrogram": {
       "type": "MelSpectrogram",
       "args": {
-        "n_mels": 128
+        "n_mels": 80,
+        "hop_length": 160
       }
     },
     "log_spec": true
@@ -42,7 +43,7 @@
   "arch": {
     "type": "Conformer",
     "args": {
-      "n_feats": 128,
+      "n_feats": 80,
 
       "encoder_layers": 16,
       "encoder_dim": 144,
