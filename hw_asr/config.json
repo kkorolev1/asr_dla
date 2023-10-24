@@ -46,11 +46,11 @@
       "n_feats": 80,
 
       "encoder_layers": 16,
-      "encoder_dim": 144,
+      "encoder_dim": 256,
       "encoder_dropout": 0.1,
 
       "decoder_layers": 1,
-      "decoder_dim": 320,
+      "decoder_dim": 640,
       "decoder_dropout": 0.1,
 
       "attention_heads": 4,
