@@ -134,29 +134,37 @@ class ConformerBlock(nn.Module):
                  feed_forward_dropout=0.1, feed_forward_expansion=2,
                  attention_dropout=0.1, conv_dropout=0.1, positional_encoder=None):
         super().__init__()
-        self.sequential = nn.Sequential(
-            Residual(FeedForwardModule(
+        
+        self.ff1 = Residual(
+            FeedForwardModule(
                 encoder_dim=encoder_dim, 
                 feed_forward_expansion=feed_forward_expansion,
                 dropout=feed_forward_dropout),
-                module_factor=0.5),
-            Residual(RelativeMultiHeadAttentionModule(
+            module_factor=0.5)
+        
+        self.mha = Residual(
+            RelativeMultiHeadAttentionModule(
                 encoder_dim=encoder_dim,
                 attention_heads=attention_heads,
                 dropout=attention_dropout,
-                positional_encoder=positional_encoder
-                )
-            ),
-            Residual(ConvolutionModule(encoder_dim, kernel_size=conv_kernel_size, dropout=conv_dropout)),
-            Residual(FeedForwardModule(
+                positional_encoder=positional_encoder)
+            )
+        self.conv = Residual(
+            ConvolutionModule(encoder_dim, kernel_size=conv_kernel_size, dropout=conv_dropout)
+        )
+        self.ff2 = Residual(
+            FeedForwardModule(
                 encoder_dim=encoder_dim, 
                 feed_forward_expansion=feed_forward_expansion, dropout=feed_forward_dropout),
-                module_factor=0.5)
-        )
+            module_factor=0.5)
         self.norm = nn.LayerNorm(encoder_dim)
 
     def forward(self, x, mask):
-        return self.norm(self.sequential(x, mask))
+        x = self.ff1(x)
+        x = self.mha(x, mask)
+        x = self.conv(x)
+        x = self.ff2(x)
+        return self.norm(x)
 
 
 class ConformerEncoder(nn.Module):
