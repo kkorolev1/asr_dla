@@ -151,12 +151,12 @@ class ConformerBlock(nn.Module):
             Residual(FeedForwardModule(
                 encoder_dim=encoder_dim, 
                 feed_forward_expansion=feed_forward_expansion, dropout=feed_forward_dropout),
-                module_factor=0.5),
-            nn.LayerNorm(encoder_dim)
+                module_factor=0.5)
         )
+        self.norm = nn.LayerNorm(encoder_dim)
 
     def forward(self, x, mask):
-        return self.sequential(x, mask)
+        return self.norm(self.sequential(x, mask))
 
 
 class ConformerEncoder(nn.Module):
