@@ -189,7 +189,7 @@ class ConformerEncoder(nn.Module):
                                                     for _ in range(encoder_layers)])
 
     def forward(self, x, lengths):
-        mask = torch.ones((x.shape[0], x.shape[1], x.shape[1]), dtype=bool)
+        mask = torch.ones((x.shape[0], x.shape[1], x.shape[1]), dtype=bool, device=lengths.device)
         for i, l in enumerate(lengths):
             mask[i, :, :l] = 0
 
