@@ -71,15 +71,3 @@ class Conformer(BaseModel):
 
     def transform_input_lengths(self, input_lengths):
         return ((input_lengths - 1) // 2 - 1) // 2
-
-
-if __name__ == "__main__":
-    batch = torch.ones((1, 20, 80))
-    cb = ConformerBlock(80, 8)
-    print(cb(batch).shape)
-
-    encoder = ConformerEncoder(80, 4, 144, 8)
-    print(encoder(batch).shape)
-
-    decoder = ConformerDecoder(144, 3, 64, 10)
-    print(decoder(encoder(batch)).shape)

@@ -45,12 +45,12 @@
     "args": {
       "n_feats": 80,
 
-      "encoder_layers": 8,
-      "encoder_dim": 288,
+      "encoder_layers": 16,
+      "encoder_dim": 256,
       "encoder_dropout": 0.1,
 
       "decoder_layers": 1,
-      "decoder_dim": 576,
+      "decoder_dim": 640,
       "decoder_dropout": 0.1,
 
       "attention_heads": 4,
@@ -140,7 +140,7 @@
   "optimizer": {
     "type": "AdamW",
     "args": {
-      "lr": 5e-4,
+      "lr": 0.003125,
       "betas": [0.9, 0.98],
       "eps": 1e-9,
       "weight_decay": 1e-6
@@ -183,24 +183,25 @@
     }
   ],
   "lr_scheduler": {
-    "type": "TransformerLrScheduler",
+    "type": "CosineAnnealingWithWarmupLR",
     "args": {
-      "d_model": 288,
-      "warmup_steps": 10000
+      "warmup_steps": 30000,
+      "max_steps": 60000
     }
   },
   "trainer": {
     "epochs": 100,
     "save_dir": "saved/",
+    
     "save_period": 5,
     "verbosity": 2,
     "monitor": "min val_loss",
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer_sanity",
+    "wandb_run_name": "conformer_medium_with_noise",
     "len_epoch": 5000,
-    "grad_norm_clip": 10,
+    "grad_norm_clip": 7,
     "accum_iters": 1
   }
 }

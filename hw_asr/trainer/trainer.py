@@ -114,7 +114,10 @@ class Trainer(BaseTrainer):
             clip_grad_norm_(
                 self.model.parameters(), self.config["trainer"]["grad_norm_clip"]
             )
-
+    def _add_variational_noise(self, std=0.0001):
+        with torch.no_grad():
+            for param in self.model.parameters():
+                param.add_(torch.randn(param.size()).cuda() * std)
     def _train_epoch(self, epoch):
         """
         Training logic for an epoch
@@ -125,6 +128,7 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.train_metrics.reset()
         self.writer.add_scalar("epoch", epoch)
+        self._add_variational_noise()
         for batch_idx, batch in enumerate(
                 tqdm(self.train_dataloader, desc="train", total=self.len_epoch)
         ):

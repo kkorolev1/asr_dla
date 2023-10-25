@@ -36,11 +36,5 @@ class FeedForwardModule(nn.Module):
             nn.Dropout(dropout)
         )
 
-    def forward(self, x):
+    def forward(self, x, *args):
         return self.sequential(x)
-    
-
-if __name__ == "__main__":
-    batch = torch.ones((32, 20, 32))
-    ffm = FeedForwardModule(32)
-    print(ffm(batch).shape)

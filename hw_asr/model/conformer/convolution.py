@@ -93,17 +93,6 @@ class ConvolutionModule(nn.Module):
             nn.Dropout(dropout)
         )
 
-    def forward(self, x):
+    def forward(self, x, *args):
         x = self.layer_norm(x)
         return self.sequential(x.transpose(1, 2)).transpose(1, 2)
-    
-if __name__ == "__main__":
-    batch = torch.ones((1, 863, 32))
-    cm = ConvolutionModule(32, 3)
-    print(cm(batch).shape)
-
-    for len in range(862, 868):
-        batch = torch.ones((1, len, 32))
-        subsampler = ConvSubsampling(1, 32, 3)
-        print(len, subsampler(batch).shape)
-        break
