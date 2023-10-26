@@ -169,7 +169,7 @@
       "type": "BeamSearchWERMetric",
       "args": {
         "name": "WER (lm + beamsearch)",
-        "beam_size": 10,
+        "beam_size": 100,
         "with_lm": true
       }
     },
@@ -177,7 +177,7 @@
       "type": "BeamSearchCERMetric",
       "args": {
         "name": "CER (lm + beamsearch)",
-        "beam_size": 10,
+        "beam_size": 100,
         "with_lm": true
       }
     },
@@ -185,7 +185,7 @@
       "type": "BeamSearchWERMetric",
       "args": {
         "name": "WER (beamsearch)",
-        "beam_size": 10,
+        "beam_size": 3,
         "with_lm": false
       }
     },
@@ -193,7 +193,7 @@
       "type": "BeamSearchCERMetric",
       "args": {
         "name": "CER (beamsearch)",
-        "beam_size": 10,
+        "beam_size": 3,
         "with_lm": false
       }
     }
@@ -216,7 +216,7 @@
     "visualize": "wandb",
     "wandb_project": "asr_project",
     "wandb_run_name": "conformer_final_eval",
-    "len_epoch": 1,
+    "len_epoch": 10,
     "grad_norm_clip": 7,
     "accum_iters": 1,
     "fine_tune": true
