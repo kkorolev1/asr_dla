@@ -1,0 +1,178 @@
+{
+  "name": "default_config",
+  "n_gpu": 1,
+  "preprocessing": {
+    "sr": 16000,
+    "spectrogram": {
+      "type": "MelSpectrogram",
+      "args": {
+        "n_mels": 80,
+        "hop_length": 160
+      }
+    },
+    "log_spec": true
+  },
+  "text_encoder": {
+    "type": "CTCCharTextEncoder",
+    "args": {
+      "with_lm": true,
+      "kenlm_path": "/kaggle/input/libri-lm/3-gram.arpa",
+      "vocab_path": "/kaggle/input/libri-vocab/librispeech-vocab.txt"
+    }
+  },
+  "augmentations": {
+    "wave": [
+    ],
+    "spectrogram": [
+      {
+        "type": "FrequencyMasking",
+        "args": {
+          "freq_mask_param": 27
+        }
+      },
+      {
+        "type": "MultiTimeMasking",
+        "args": {
+          "time_mask_param": 15,
+          "p": 0.05,
+          "n": 10
+        }
+      }
+    ]
+  },
+  "arch": {
+    "type": "Conformer",
+    "args": {
+      "n_feats": 80,
+
+      "encoder_layers": 16,
+      "encoder_dim": 256,
+      "encoder_dropout": 0.1,
+
+      "decoder_layers": 1,
+      "decoder_dim": 640,
+      "decoder_dropout": 0.1,
+
+      "attention_heads": 4,
+      "attention_dropout": 0.1,
+
+      "conv_kernel_size": 31,
+      "conv_dropout": 0.1,
+
+      "feed_forward_expansion": 4,
+      "feed_forward_dropout": 0.1
+    }
+  },
+  "data": {
+    "test": {
+      "batch_size": 32,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "test-clean",
+            "data_dir": "/kaggle/input/librispeech"
+          }
+        }
+      ]
+    },
+    "test-other": {
+      "batch_size": 32,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "test-other",
+            "data_dir": "/kaggle/input/librispeech"
+          }
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "AdamW",
+    "args": {
+      "lr": 0.003125,
+      "betas": [0.9, 0.98],
+      "eps": 1e-9,
+      "weight_decay": 1e-6
+    }
+  },
+  "loss": {
+    "type": "CTCLoss",
+    "args": {
+      "zero_infinity": true
+    }
+  },
+  "metrics": [
+    {
+      "type": "ArgmaxWERMetric",
+      "args": {
+        "name": "WER (argmax)"
+      }
+    },
+    {
+      "type": "ArgmaxCERMetric",
+      "args": {
+        "name": "CER (argmax)"
+      }
+    },
+    {
+      "type": "BeamSearchWERMetric",
+      "args": {
+        "name": "WER (lm + beamsearch)",
+        "beam_size": 10,
+        "with_lm": true
+      }
+    },
+    {
+      "type": "BeamSearchCERMetric",
+      "args": {
+        "name": "CER (lm + beamsearch)",
+        "beam_size": 10,
+        "with_lm": true
+      }
+    },
+    {
+      "type": "BeamSearchWERMetric",
+      "args": {
+        "name": "WER (beamsearch)",
+        "beam_size": 10,
+        "with_lm": false
+      }
+    },
+    {
+      "type": "BeamSearchCERMetric",
+      "args": {
+        "name": "CER (beamsearch)",
+        "beam_size": 10,
+        "with_lm": false
+      }
+    }
+  ],
+  "lr_scheduler": {
+    "type": "CosineAnnealingWithWarmupLR",
+    "args": {
+      "warmup_steps": 30000,
+      "max_steps": 60000
+    }
+  },
+  "trainer": {
+    "epochs": 20,
+    "save_dir": "saved/",
+    
+    "save_period": 5,
+    "verbosity": 2,
+    "monitor": "min val_loss",
+    "early_stop": 100,
+    "visualize": "wandb",
+    "wandb_project": "asr_project",
+    "wandb_run_name": "conformer_final_eval",
+    "len_epoch": 1,
+    "grad_norm_clip": 7,
+    "accum_iters": 1,
+    "fine_tune": true
+  }
+}
