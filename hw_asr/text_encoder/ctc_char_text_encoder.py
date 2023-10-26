@@ -87,7 +87,7 @@ class CTCCharTextEncoder(CharTextEncoder):
             final_beam[final_sentence] += p
             
         sorted_beam = sorted(final_beam.items(), key=lambda x: -x[1])
-        return [Hypothesis(text, v) for text, v in sorted_beam]
+        return [Hypothesis(text, p.item()) for text, v in sorted_beam]
     
     def ctc_lm_beam_search(self, probs, probs_length, beam_size: int = 100) -> List[Hypothesis]:
         assert probs.shape[-1] == len(self.ind2char)
