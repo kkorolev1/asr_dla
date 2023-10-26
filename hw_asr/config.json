@@ -166,11 +166,27 @@
       }
     },
     {
+      "type": "LMBeamSearchWERMetric",
+      "args": {
+        "name": "WER (lm + beamsearch)",
+        "beam_size": 10,
+        "with_lm": true
+      }
+    },
+    {
+      "type": "LMBeamSearchCERMetric",
+      "args": {
+        "name": "CER (lm + beamsearch)",
+        "beam_size": 10,
+        "with_lm": true
+      }
+    },
+    {
       "type": "BeamSearchWERMetric",
       "args": {
         "name": "WER (beamsearch)",
         "beam_size": 10,
-        "with_lm": true
+        "with_lm": false
       }
     },
     {
@@ -178,7 +194,7 @@
       "args": {
         "name": "CER (beamsearch)",
         "beam_size": 10,
-        "with_lm": true
+        "with_lm": false
       }
     }
   ],
@@ -190,7 +206,7 @@
     }
   },
   "trainer": {
-    "epochs": 100,
+    "epochs": 1,
     "save_dir": "saved/",
     
     "save_period": 5,
@@ -199,8 +215,8 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_run_name": "conformer_medium_with_noise",
-    "len_epoch": 200,
+    "wandb_run_name": "conformer_final_eval",
+    "len_epoch": 1,
     "grad_norm_clip": 7,
     "accum_iters": 1,
     "fine_tune": true
