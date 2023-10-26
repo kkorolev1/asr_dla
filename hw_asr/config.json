@@ -202,6 +202,7 @@
     "wandb_run_name": "conformer_medium_with_noise",
     "len_epoch": 5000,
     "grad_norm_clip": 7,
-    "accum_iters": 1
+    "accum_iters": 1,
+    "fine_tune": true
   }
 }
