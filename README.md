@@ -1,6 +1,6 @@
 # ASR HW 1
 
-Automatic Speech Recognition task using Conformel model trained on Librispeech.
+Automatic Speech Recognition task using Conformer model trained on Librispeech.
 
 ## Installation guide
 
@@ -17,6 +17,8 @@ python train.py -c CONFIG
 Check hw_asr for config examples
 
 ## Testing
+One can choose which metrics to evaluate in config file.
 ```shell
 python test.py -c CONFIG -r CHECKPOINT
 ```
+Eventually, you will have a file with predictions, metrics are outputted to the console.
