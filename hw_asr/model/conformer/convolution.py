@@ -19,18 +19,34 @@ class ConvSubsampling(nn.Module):
         x = x.permute(0, 2, 1, 3)
         return x.contiguous().view(batch_size, subsampled_time, encoder_dim * subsampled_freq)
 
+class PointwiseConv(nn.Module):
+    def __init__(self, in_channels, out_channels, stride=1, padding=0, bias=True):
+        super().__init__()
+        self.conv = nn.Conv1d(in_channels, out_channels, kernel_size=1, stride=stride, padding=padding, bias=bias)
+
+    def forward(self, x):
+        return self.conv(x)
+
+
+class DepthwiseConv(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True):
+        super().__init__()
+        self.conv = nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, groups=in_channels, bias=bias)
+
+    def forward(self, x):
+        return self.conv(x)
 
 class ConvolutionModule(nn.Module):
     def __init__(self, encoder_dim, kernel_size, dropout):
         super().__init__()
         self.layer_norm = nn.LayerNorm(encoder_dim)
         self.sequential = nn.Sequential(
-            nn.Conv1d(encoder_dim, 2 * encoder_dim, kernel_size=1),
+            PointwiseConv(encoder_dim, 2 * encoder_dim),
             nn.GLU(dim=1),
-            nn.Conv1d(encoder_dim, encoder_dim, kernel_size=kernel_size, padding="same", groups=encoder_dim),
+            DepthwiseConv(encoder_dim, encoder_dim, kernel_size=kernel_size, padding="same"),
             nn.BatchNorm1d(encoder_dim),
             nn.SiLU(),
-            nn.Conv1d(encoder_dim, encoder_dim, kernel_size=1),
+            PointwiseConv(encoder_dim, encoder_dim),
             nn.Dropout(dropout)
         )
 

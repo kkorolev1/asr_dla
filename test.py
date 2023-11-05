@@ -7,10 +7,13 @@ import torch
 from tqdm import tqdm
 
 import hw_asr.model as module_model
+import hw_asr.metric as module_metric
 from hw_asr.trainer import Trainer
 from hw_asr.utils import ROOT_PATH
 from hw_asr.utils.object_loading import get_dataloaders
 from hw_asr.utils.parse_config import ConfigParser
+from hw_asr.utils import MetricTracker
+
 
 DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "default_test_model" / "checkpoint.pth"
 
@@ -45,6 +48,14 @@ def main(config, out_file):
 
     results = []
 
+    metrics = [
+        config.init_obj(metric_dict, module_metric, text_encoder=text_encoder)
+        for metric_dict in config["metrics"]
+    ]
+    evaluation_metrics = MetricTracker(
+        *[m.name for m in metrics]
+    )
+
     with torch.no_grad():
         for batch_num, batch in enumerate(tqdm(dataloaders["test"])):
             batch = Trainer.move_batch_to_device(batch, device)
@@ -59,6 +70,8 @@ def main(config, out_file):
             )
             batch["probs"] = batch["log_probs"].exp().cpu()
             batch["argmax"] = batch["probs"].argmax(-1)
+            for met in metrics:
+                evaluation_metrics.update(met.name, met(**batch))
             for i in range(len(batch["text"])):
                 argmax = batch["argmax"][i]
                 argmax = argmax[: int(batch["log_probs_length"][i])]
@@ -67,10 +80,16 @@ def main(config, out_file):
                         "ground_trurh": batch["text"][i],
                         "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
                         "pred_text_beam_search": text_encoder.ctc_beam_search(
-                            batch["probs"][i], batch["log_probs_length"][i], beam_size=3
+                            batch["probs"][i], batch["log_probs_length"][i], beam_size=10
                         ),
+                        "pred_text_lm": text_encoder.ctc_lm_beam_search(
+                            batch["probs"][i].unsqueeze(0), batch["log_probs_length"][i].unsqueeze(0), beam_size=10
+                        )
                     }
                 )
+    metrics_results = evaluation_metrics.result()
+    print(metrics_results)
+
     with Path(out_file).open("w") as f:
         json.dump(results, f, indent=2)
 

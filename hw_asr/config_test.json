@@ -16,8 +16,8 @@
     "type": "CTCCharTextEncoder",
     "args": {
       "with_lm": true,
-      "kenlm_path": "/kaggle/input/libri-lm/3-gram.arpa",
-      "vocab_path": "/kaggle/input/libri-vocab/librispeech-vocab.txt"
+      "kenlm_path": "3-gram.arpa",
+      "vocab_path": "librispeech-vocab.txt"
     }
   },
   "augmentations": {
@@ -65,27 +65,27 @@
   },
   "data": {
     "test": {
-      "batch_size": 32,
+      "batch_size": 2,
       "num_workers": 5,
       "datasets": [
         {
           "type": "LibrispeechDataset",
           "args": {
             "part": "test-clean",
-            "data_dir": "/kaggle/input/librispeech"
+            "limit": 2
           }
         }
       ]
     },
     "test-other": {
-      "batch_size": 32,
+      "batch_size": 2,
       "num_workers": 5,
       "datasets": [
         {
           "type": "LibrispeechDataset",
           "args": {
             "part": "test-other",
-            "data_dir": "/kaggle/input/librispeech"
+            "limit": 2
           }
         }
       ]

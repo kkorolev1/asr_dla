@@ -62,7 +62,7 @@ class ConformerEncoder(nn.Module):
                  feed_forward_expansion=2, attention_dropout=0.1,
                  conv_dropout=0.1):
         super().__init__()
-        self.conv_subsampling = ConvSubsampling(out_channels=encoder_dim, kernel_size=3)
+        self.conv_subsampling = ConvSubsampling(out_channels=encoder_dim)
         self.linear = nn.Linear(encoder_dim * (((n_feats - 1) // 2 - 1) // 2), encoder_dim)
         self.dropout = nn.Dropout(encoder_dropout)
         positional_encoder = PositionalEncoder(encoder_dim)
