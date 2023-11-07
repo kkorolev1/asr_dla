@@ -8,7 +8,7 @@ Automatic Speech Recognition task using Conformer model trained on Librispeech.
 pip install -r ./requirements.txt
 ```
 
-Download 3-gram.arpa and vocab from https://www.openslr.org/11/. To use them change kenlm_path and vocab_path in config.json. You can download model checkpoint from [this link](https://drive.google.com/file/d/1DBNBP8ap7NvWtEQ8g4GrnEXstz-UG3-m/view?usp=sharing).
+Download 3-gram.arpa and vocab from https://www.openslr.org/11/. To use them change kenlm_path and vocab_path in config.json. You can download model checkpoint from [this link](https://drive.google.com/file/d/1DBNBP8ap7NvWtEQ8g4GrnEXstz-UG3-m/view?usp=sharing). Config for the best model can be found in hw_asr/config.json.
 
 ## Training
 ```shell
