@@ -17,7 +17,7 @@ class CustomDirAudioDataset(CustomAudioDataset):
                     transc_path = Path(transcription_dir) / (path.stem + '.txt')
                     if transc_path.exists():
                         with transc_path.open() as f:
-                            entry["text"] = f.read().strip()
+                            entry["text"] = f.read().strip().lower()
             if len(entry) > 0:
                 data.append(entry)
         super().__init__(data, *args, **kwargs)
