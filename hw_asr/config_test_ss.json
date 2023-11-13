@@ -16,8 +16,8 @@
     "type": "CTCCharTextEncoder",
     "args": {
       "with_lm": true,
-      "kenlm_path": "3-gram.arpa",
-      "vocab_path": "librispeech-vocab.txt"
+      "kenlm_path": "/kaggle/input/libri-lm/3-gram.arpa",
+      "vocab_path": "/kaggle/input/libri-vocab/librispeech-vocab.txt"
     }
   },
   "augmentations": {
