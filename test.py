@@ -72,7 +72,7 @@ def main(config, out_file):
             batch["argmax"] = batch["probs"].argmax(-1)
             for met in metrics:
                 evaluation_metrics.update(met.name, met(**batch))
-            continue
+            """
             for i in range(len(batch["text"])):
                 argmax = batch["argmax"][i]
                 argmax = argmax[: int(batch["log_probs_length"][i])]
@@ -88,6 +88,7 @@ def main(config, out_file):
                         )
                     }
                 )
+            """
     metrics_results = evaluation_metrics.result()
     print(metrics_results)
 
