@@ -97,7 +97,7 @@
       "type": "BeamSearchWERMetric",
       "args": {
         "name": "WER (lm + beamsearch)",
-        "beam_size": 10,
+        "beam_size": 100,
         "with_lm": true
       }
     },
@@ -105,24 +105,8 @@
       "type": "BeamSearchCERMetric",
       "args": {
         "name": "CER (lm + beamsearch)",
-        "beam_size": 10,
+        "beam_size": 100,
         "with_lm": true
-      }
-    },
-    {
-      "type": "BeamSearchWERMetric",
-      "args": {
-        "name": "WER (beamsearch)",
-        "beam_size": 10,
-        "with_lm": false
-      }
-    },
-    {
-      "type": "BeamSearchCERMetric",
-      "args": {
-        "name": "CER (beamsearch)",
-        "beam_size": 10,
-        "with_lm": false
       }
     }
   ],
