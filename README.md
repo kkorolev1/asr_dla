@@ -2,6 +2,8 @@
 
 Automatic Speech Recognition task using Conformer model trained on Librispeech.
 
+[Wandb Report](https://wandb.ai/kkorolev/asr_project/reports/-1--Vmlldzo1Nzg5NTQ2)
+
 ## Installation guide
 
 ```shell
